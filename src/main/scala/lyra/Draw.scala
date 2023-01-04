@@ -14,7 +14,9 @@ case class Rectangle(x: Double, y: Double, w: Double, h: Double) {
     horizontal && vertical
   }
 }
-case class Delta(dx: Double, dy: Double)
+case class Delta(dx: Double, dy: Double) {
+  def reverse(): Delta = Delta(-dx, -dy)
+}
 object Delta {
   def from(p1: Point, p2: Point): Delta = new Delta(p2.x - p1.x, p2.y - p1.y)
 }
@@ -27,6 +29,7 @@ trait Shape:
 trait ModifiableShape extends Shape {
   def modify(p: Point): ModifiableShape
 }
+
 
 case class StrokeShape(private val contents: List[Point]) extends ModifiableShape {
   def overlap(r: Rectangle): Boolean = {
