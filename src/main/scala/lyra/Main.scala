@@ -5,7 +5,8 @@ import org.scalajs.dom
 
 @main
 def Lyra(): Unit = {
-    dom.document.querySelector("#app").innerHTML = """
-        <h1>Hello scala.js & Vite</h1>
-    """
+    val canvasElement = dom.document.querySelector("#appCanvas").asInstanceOf[dom.HTMLCanvasElement]
+    val ctx = canvasElement.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+    ctx.fillStyle = "black"
+    ctx.fillRect(0,0,255,255.0)
 }
