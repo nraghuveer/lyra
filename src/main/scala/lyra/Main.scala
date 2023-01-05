@@ -6,8 +6,5 @@ import org.scalajs.dom
 @main
 def Lyra(): Unit = {
     val canvasElement = dom.document.querySelector("#appCanvas").asInstanceOf[dom.HTMLCanvasElement]
-    val app = App(canvasElement, List[Shape]())
-//    val ctx = canvasElement.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-//    ctx.fillStyle = "black"
-//    ctx.fillRect(0,0,255,255.0)
+    val _ = App(canvasElement, List[Shape]())
 }
