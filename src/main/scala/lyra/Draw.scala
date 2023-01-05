@@ -23,7 +23,7 @@ object Delta {
 
 trait Shape:
   def overlap(r: Rectangle): Boolean
-  def draw(gfx: dom.CanvasRenderingContext2D): Unit
+  def draw(canvas: dom.HTMLCanvasElement): Unit
   def move(d: Delta): ModifiableShape
 
 trait ModifiableShape extends Shape {
@@ -31,12 +31,15 @@ trait ModifiableShape extends Shape {
 }
 
 
-case class StrokeShape(private val contents: List[Point]) extends ModifiableShape {
+case class StrokeShape(private val contents: List[Point], private val styles: StylesConfig) extends ModifiableShape {
   def overlap(r: Rectangle): Boolean = {
     // check if each point in the contents is contained in the rectangle
     contents.forall(r.contains)
   }
-  def draw(gfx: dom.CanvasRenderingContext2D): Unit = {
+  def draw(canvas: dom.HTMLCanvasElement): Unit = {
+    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+    gfx.strokeStyle = styles.color
+    gfx.lineWidth = styles.lineWidth
     gfx.beginPath()
     for (p <- contents) {
       gfx.lineTo(p.x, p.y)
@@ -46,11 +49,11 @@ case class StrokeShape(private val contents: List[Point]) extends ModifiableShap
 
   def move(d: Delta): StrokeShape = {
     // move each point with delta
-    StrokeShape(contents.map(p => p.move(d)))
+    StrokeShape(contents.map(p => p.move(d)), styles)
   }
 
   def modify(newPoint: Point): StrokeShape = {
-    StrokeShape(this.contents :+ newPoint)
+    StrokeShape(this.contents :+ newPoint, styles)
   }
 }
 
