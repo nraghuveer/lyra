@@ -11,31 +11,26 @@ trait AppMode:
 
 // Initial mode for any shape
 abstract class ShapeCreatorMode(app: App) extends AppMode {
-  def createShape(initial: Point): ModifiableShape;
+  def newShape(): ModifiableShape
+
+  private var editee: ModifiableShape = newShape()
   override def onMouseDown(e: MouseEvent): Unit = {
-    app.editeeSetter(_ => Some(createShape(app.clickToPoint(e))))
+    editee = editee.modify(app.clickToPoint(e))
   }
 
   override def onMouseMove(e: MouseEvent): Unit = {
-    app.editeeSetter {
-      case Some(shape) => Some(shape.modify(app.clickToPoint(e)))
-      case _ => None
-    }
+    editee = editee.modify(app.clickToPoint(e))
   }
 
   override def onMouseUp(e: MouseEvent): Unit = {
-    app.editeeSetter {
-      case Some(shape) =>
-        app.dataSetter(old => old ++ List[Shape](shape))
-        None // add to data and set the current to null
-      case _ => None
-    }
+    app.commandController.log(CreateShapeCommand(editee))
+    editee = newShape()
   }
 }
 
 class StrokeCreateMode(app: App) extends ShapeCreatorMode(app) {
-  override def createShape(initial: Point): ModifiableShape = {
-    StrokeShape(List(initial))
+  override def newShape(): ModifiableShape = {
+    StrokeShape(List())
   }
 }
 

@@ -1,4 +1,5 @@
 package lyra
+import org.scalajs.dom
 
 trait CommandController:
   def log(c: ShapeCommand): Unit
@@ -7,8 +8,18 @@ trait CommandController:
   def canUndo: Boolean
   def canRedo: Boolean
 
+  def run(setData: DataSetter): Unit
+
 class UndoCommandController extends CommandController {
   private var changes: List[ShapeCommand] = List[ShapeCommand]()
+
+  override def run(setData: DataSetter): Unit = {
+    println(changes)
+    for (cmd <- changes) {
+      cmd.run(setData)
+    }
+
+  }
   override def log(c: ShapeCommand): Unit = {
     changes = changes ++ List(c)
   }
