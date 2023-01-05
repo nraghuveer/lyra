@@ -13,8 +13,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   val commandController = new UndoCommandController()
 
   // should return a function that takes a event and return unit
-  type MouseActionFnType = dom.MouseEvent => Unit
-  def mouseActionWrapper(fn: MouseActionFnType): MouseActionFnType = {
+  type ActionFnType[E] = E => Unit
+  def renderWrapper[E](fn: ActionFnType[E]): ActionFnType[E] = {
     // the return should be executed after then fn is executed
     return (e) => {
       fn(e)
@@ -25,9 +25,16 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     }
   }
 
-  canvas.onmouseup = mouseActionWrapper(e => mode.onMouseUp(e))
-  canvas.onmousedown = mouseActionWrapper(e => mode.onMouseDown(e))
-  canvas.onmousemove = mouseActionWrapper(e => mode.onMouseMove(e))
+  canvas.onmouseup = renderWrapper(e => mode.onMouseUp(e))
+  canvas.onmousedown = renderWrapper(e => mode.onMouseDown(e))
+  canvas.onmousemove = renderWrapper(e => mode.onMouseMove(e))
+  dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
+    if (e.keyCode == 90 && e.ctrlKey) {
+      println("undo")
+      val ret = commandController.undo()
+      println("undo => " + ret)
+    }
+  })
 
   private def clearCanvas(canvas: dom.HTMLCanvasElement): Unit = {
     val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
