@@ -2,6 +2,7 @@ package lyra
 import org.scalajs.dom
 import org.scalajs.dom.MouseEvent
 
+
 trait AppMode:
   def onMouseDown(e: dom.MouseEvent): Unit;
   def onMouseUp(e: dom.MouseEvent): Unit;
@@ -17,6 +18,7 @@ abstract class ShapeCreatorMode(app: App) extends AppMode {
   private var editee: Option[ModifiableShape] = None
 
   override def curEditee: Option[Shape] = editee
+
   override def onMouseDown(e: MouseEvent): Unit = {
     editee = Some(newShape().modify(app.clickToPoint(e)))
   }
@@ -40,7 +42,7 @@ abstract class ShapeCreatorMode(app: App) extends AppMode {
 
 class StrokeCreateMode(app: App) extends ShapeCreatorMode(app) {
   override def newShape(): ModifiableShape = {
-    StrokeShape(List())
+    StrokeShape(List(), app.styles)
   }
 }
 
