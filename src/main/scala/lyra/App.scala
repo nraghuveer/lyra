@@ -30,7 +30,6 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   canvas.onmousemove = renderWrapper(e => mode.onMouseMove(e))
   dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
     if (e.keyCode == 90 && e.ctrlKey) {
-      println("undo")
       val ret = commandController.undo()
       println("undo => " + ret)
     }

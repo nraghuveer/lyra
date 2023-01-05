@@ -49,3 +49,13 @@ class UndoCommand(command: ShapeCommand) extends ShapeCommand {
     command.run(setData)
   }
 }
+
+class RedoCommand(command: ShapeCommand) extends ShapeCommand {
+  override def run(setData: DataSetter): Unit = {
+
+  }
+
+  override def undo(setData: DataSetter): Unit = {
+
+  }
+}
