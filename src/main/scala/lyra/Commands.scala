@@ -52,10 +52,10 @@ class UndoCommand(command: ShapeCommand) extends ShapeCommand {
 
 class RedoCommand(command: ShapeCommand) extends ShapeCommand {
   override def run(setData: DataSetter): Unit = {
-
+    command.undo(setData)
   }
 
   override def undo(setData: DataSetter): Unit = {
-
+    command.run(setData)
   }
 }

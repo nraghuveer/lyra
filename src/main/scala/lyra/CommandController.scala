@@ -24,7 +24,7 @@ class UndoCommandController extends CommandController {
     // add to undo stack only if it is not undo command, else we endup in loop
     // where only last shape will be undoed
     c match {
-      case uc: UndoCommand =>
+      case uc: UndoCommand => redoStack.push(uc)
       case _: ShapeCommand => undoStack.push(c)
     }
   }
@@ -35,6 +35,10 @@ class UndoCommandController extends CommandController {
     true
   }
 
-  override def redo(): Boolean = false
+  override def redo(): Boolean = {
+    if (redoStack.isEmpty) {return false}
+    log(new RedoCommand(redoStack.pop()))
+    true
+  }
 }
 

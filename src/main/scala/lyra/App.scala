@@ -32,6 +32,9 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     if (e.keyCode == 90 && e.ctrlKey) {
       val ret = commandController.undo()
       println("undo => " + ret)
+    } else if (e.keyCode == 89 && e.ctrlKey) {
+      val ret = commandController.redo()
+      println("redo => " + ret)
     }
   })
 
