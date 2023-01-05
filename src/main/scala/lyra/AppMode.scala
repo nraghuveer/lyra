@@ -13,22 +13,22 @@ trait AppMode:
 abstract class ShapeCreatorMode(app: App) extends AppMode {
   def createShape(initial: Point): ModifiableShape;
   override def onMouseDown(e: MouseEvent): Unit = {
-    val shape = createShape(app.clickToPoint(e))
-    app.setCurEditShape(Some(shape))
+    app.editeeSetter(_ => Some(createShape(app.clickToPoint(e))))
   }
 
   override def onMouseMove(e: MouseEvent): Unit = {
-    if (app.isCurEdit) {
-      app.modifyCurEditShape(app.clickToPoint(e))
+    app.editeeSetter {
+      case Some(shape) => Some(shape.modify(app.clickToPoint(e)))
+      case _ => None
     }
   }
 
   override def onMouseUp(e: MouseEvent): Unit = {
-    app.getCurEdit match {
-      case Some(curEditShape) =>
-        app.dataSetter(old => old ++ List[Shape](curEditShape))
-        app.setCurEditShape(None)
-      case _ =>
+    app.editeeSetter {
+      case Some(shape) =>
+        app.dataSetter(old => old ++ List[Shape](shape))
+        None // add to data and set the current to null
+      case _ => None
     }
   }
 }
