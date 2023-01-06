@@ -9,10 +9,27 @@ trait AppMode:
   def onMouseMove(e: dom.MouseEvent): Unit;
   def editees: List[StaticShape];
 
+trait SelectionMode extends AppMode:
+  def isSelection: Boolean
+  def isInSelection(p: Point): Boolean
+
 // Stoke and Selection
-class RectangleSelectionMode(app: App) extends AppMode {
+class RectangleSelectionMode(app: App) extends SelectionMode {
   var selectionRect: Option[Rectangle] = None
   var selectionRectStart: Option[Point] = None
+  private val dragMode: AppMode = new RectangleSelectionDragMode(this)
+
+  override def isSelection: Boolean = selectionRect match {
+    case Some(_) => true
+    case None    => false
+  }
+
+  override def isInSelection(p: Point): Boolean = {
+    selectionRect match {
+      case Some(rect) => rect.contains(p)
+      case None       => false
+    }
+  }
 
   private def selectedShapes: List[StaticShape] =
     // this should have different styles
@@ -36,14 +53,17 @@ class RectangleSelectionMode(app: App) extends AppMode {
     rect ++ selectedShapes
 
   def onMouseDown(e: MouseEvent): Unit = {
-    // start drawing rectangle
-    selectionRectStart = Some(app.clickToPoint(e))
-    selectionRect = None
+    // if the point is in current selectionRectStart, dont clear
+    val p = app.clickToPoint(e)
+    if (!isInSelection(p)) {
+      selectionRectStart = Some(app.clickToPoint(e))
+      selectionRect = None
+    }
+    dragMode.onMouseDown(e)
   }
   def onMouseUp(e: MouseEvent): Unit = {
     // support only top to bottom
     val p = app.clickToPoint(e)
-
     selectionRectStart match {
       case Some(start) =>
         val w = p.x - start.x
@@ -52,6 +72,7 @@ class RectangleSelectionMode(app: App) extends AppMode {
       case None =>
     }
     selectionRectStart = None
+    dragMode.onMouseUp(e)
   }
   def onMouseMove(e: MouseEvent): Unit = {
     val p = app.clickToPoint(e)
@@ -62,8 +83,20 @@ class RectangleSelectionMode(app: App) extends AppMode {
         selectionRect = Some(Rectangle(start.x, start.y, w, h))
       case None =>
     }
+    dragMode.onMouseMove(e)
   }
 }
+
+class RectangleSelectionDragMode(selectionMode: SelectionMode) extends AppMode {
+  private var dragDelta: Option[Delta] = None
+  private val opacity: Double = 0.4
+
+  override def onMouseDown(e: MouseEvent): Unit = {}
+  override def onMouseMove(e: MouseEvent): Unit = {}
+  override def onMouseUp(e: MouseEvent): Unit = {}
+  override def editees: List[StaticShape] = List()
+}
+
 // Initial mode for any shape
 abstract class CreationMode(app: App) extends AppMode {
   def newShape(): ModifiableShape
