@@ -8,7 +8,6 @@ trait CommandController:
   def redo(): Boolean
   def run(setData: DataSetter): Unit
 
-
 class UndoCommandController extends CommandController {
   private var changes: List[ShapeCommand] = List[ShapeCommand]()
   private val undoStack: Stack[ShapeCommand] = Stack()
@@ -40,9 +39,8 @@ class UndoCommandController extends CommandController {
   }
 
   override def redo(): Boolean = {
-    if (redoStack.isEmpty) {return false}
+    if (redoStack.isEmpty) { return false }
     log(RedoCommand(redoStack.pop()))
     true
   }
 }
-

@@ -3,7 +3,6 @@ import org.scalajs.dom
 import org.scalajs.dom.MouseEvent
 import scala.runtime.Static
 
-
 trait AppMode:
   def onMouseDown(e: dom.MouseEvent): Unit;
   def onMouseUp(e: dom.MouseEvent): Unit;
@@ -21,8 +20,9 @@ class RectangleSelectionMode(app: App) extends AppMode {
     // if bounding rectangle
     selectionRect match {
       case Some(rect) =>
-        app.shapes.filter(shape => shape.overlap(rect)).
-          map(shape => shape.highlight)
+        app.shapes
+          .filter(shape => shape.overlap(rect))
+          .map(shape => shape.highlight)
       case None => List()
     }
 
@@ -73,7 +73,7 @@ abstract class CreationMode(app: App) extends AppMode {
 
   override def editees: List[StaticShape] = editee match {
     case Some(shape) => List(shape.asInstanceOf[StaticShape])
-    case None => List()
+    case None        => List()
   }
 
   override def onMouseDown(e: MouseEvent): Unit = {
@@ -83,7 +83,7 @@ abstract class CreationMode(app: App) extends AppMode {
   override def onMouseMove(e: MouseEvent): Unit = {
     editee = editee match {
       case Some(editShape) => Some(editShape.modify(app.clickToPoint(e)))
-      case None => None
+      case None            => None
     }
   }
 
@@ -102,4 +102,3 @@ class StrokeCreateMode(app: App) extends CreationMode(app) {
     StrokeShape(List(), app.styles)
   }
 }
-
