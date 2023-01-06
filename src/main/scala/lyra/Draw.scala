@@ -30,6 +30,7 @@ object Rectangle {
 
 case class Delta(dx: Double, dy: Double) {
   def reverse(): Delta = Delta(-dx, -dy)
+  def empty(): Boolean = dx == 0 && dy == 0
 }
 object Delta {
   def from(p1: Point, p2: Point): Delta = new Delta(p2.x - p1.x, p2.y - p1.y)

@@ -11,7 +11,6 @@ trait AppMode:
 
 trait SelectionMode extends AppMode:
   def isSelection: Boolean
-  def isInSelection(p: Point): Boolean
 
 // Stoke and Selection
 class RectangleSelectionMode(app: App) extends SelectionMode {
@@ -24,10 +23,25 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
     case None    => false
   }
 
-  override def isInSelection(p: Point): Boolean = {
-    selectionRect match {
-      case Some(rect) => rect.contains(p)
-      case None       => false
+  def isOnSelection(point: Option[Point]): Boolean = {
+    point match {
+      case Some(p) =>
+        selectionRect match {
+          case Some(rect) => rect.contains(p)
+          case None       => false
+        }
+      case None => false
+    }
+  }
+
+  def isInSelection(point: Option[Point]): Boolean = {
+    point match {
+      case Some(p) =>
+        selectionRect match {
+          case Some(rect) => rect.contains(p)
+          case None       => false
+        }
+      case None => false
     }
   }
 
@@ -53,9 +67,9 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
     rect ++ selectedShapes
 
   def onMouseDown(e: MouseEvent): Unit = {
-    // if the point is in current selectionRectStart, dont clear
     val p = app.clickToPoint(e)
-    if (!isInSelection(p)) {
+    // clear only if the point is not IN selection
+    if (!isInSelection(Some(p))) {
       selectionRectStart = Some(app.clickToPoint(e))
       selectionRect = None
     }
@@ -92,7 +106,10 @@ class RectangleSelectionDragMode(selectionMode: SelectionMode) extends AppMode {
   private val opacity: Double = 0.4
 
   override def onMouseDown(e: MouseEvent): Unit = {}
-  override def onMouseMove(e: MouseEvent): Unit = {}
+  override def onMouseMove(e: MouseEvent): Unit = {
+    if (!selectionMode.isSelection)
+      return
+  }
   override def onMouseUp(e: MouseEvent): Unit = {}
   override def editees: List[StaticShape] = List()
 }
