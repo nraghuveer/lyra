@@ -30,7 +30,7 @@ class RectangleSelectionMode(app: App) extends AppMode {
     // selection Rectangle ++ shapes bounded in this rectangle
     val rect = selectionRect match {
       case Some(rect) =>
-        List(SelectionRectShape(rect, app.styles.copy(cursor = "grab")))
+        List(SelectionRectShape(rect, app.styles))
       case None => List()
     }
     rect ++ selectedShapes
