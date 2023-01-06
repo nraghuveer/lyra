@@ -78,11 +78,12 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     clearCanvas(canvas)
     data = List()
     commandController.run(this.dataSetter)
-    // draw if there is a editee from the active mode
-    for (shape <- mode.editees) {
+
+    for (shape <- data) {
       shape.draw(canvas)
     }
-    for (shape <- data) {
+    // draw if there is a editee from the active mode
+    for (shape <- mode.editees) {
       shape.draw(canvas)
     }
   }
