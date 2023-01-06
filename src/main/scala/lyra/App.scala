@@ -7,14 +7,47 @@ import java.util.Optional
 case class StylesConfig(
     color: String,
     lineWidth: Double,
-    selectionColor: String
+    selectionColor: String,
+    selectionPointColor: String
 )
 
 class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
+  var styles = StylesConfig(
+    color = "white",
+    lineWidth = 4.0,
+    selectionColor = "blue",
+    selectionPointColor = "red"
+  )
+
   private var data: List[Shape] = initialData
+  private var strokeMode = new StrokeCreateMode(this)
+  private var rectangleSelectionMode = new RectangleSelectionMode(this)
   private var mode: AppMode = new StrokeCreateMode(this)
-  var styles = StylesConfig("white", 4.0, "blue")
   val commandController = new UndoCommandController()
+  dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
+    if (e.keyCode == 90 && e.ctrlKey) {
+      val ret = commandController.undo()
+      println("undo => " + ret)
+    } else if (e.keyCode == 89 && e.ctrlKey) {
+      val ret = commandController.redo()
+      println("redo => " + ret)
+    } else if (e.keyCode == 79 && e.ctrlKey) {
+      switchToRectSelectionMode
+    } else if (e.keyCode == 69 && e.ctrlKey) {
+      switchToEditMode
+    }
+  })
+  switchToEditMode
+
+  def switchToEditMode = {
+    mode = new StrokeCreateMode(this)
+    attachMouseEvtHandlers(mode)
+  }
+
+  def switchToRectSelectionMode = {
+    mode = new RectangleSelectionMode(this)
+    attachMouseEvtHandlers(mode)
+  }
 
   // should return a function that takes a event and return unit
   type ActionFnType[E] = E => Unit
@@ -29,24 +62,11 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     }
   }
 
-  canvas.onmouseup = renderWrapper(e => mode.onMouseUp(e))
-  canvas.onmousedown = renderWrapper(e => mode.onMouseDown(e))
-  canvas.onmousemove = renderWrapper(e => mode.onMouseMove(e))
-  dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
-    if (e.keyCode == 90 && e.ctrlKey) {
-      val ret = commandController.undo()
-      println("undo => " + ret)
-    } else if (e.keyCode == 89 && e.ctrlKey) {
-      val ret = commandController.redo()
-      println("redo => " + ret)
-    } else if (e.keyCode == 79 && e.ctrlKey) {
-      mode = new RectangleSelectionMode(this)
-      println("Selection mode")
-    } else if (e.keyCode == 69 && e.ctrlKey) {
-      mode = new RectangleSelectionMode(this)
-      println("Edit Mode")
-    }
-  })
+  def attachMouseEvtHandlers(mode: AppMode) = {
+    canvas.onmouseup = renderWrapper(e => mode.onMouseUp(e))
+    canvas.onmousedown = renderWrapper(e => mode.onMouseDown(e))
+    canvas.onmousemove = renderWrapper(e => mode.onMouseMove(e))
+  }
 
   private def clearCanvas(canvas: dom.HTMLCanvasElement): Unit = {
     val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
