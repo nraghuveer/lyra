@@ -35,11 +35,11 @@ case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig) extends
     val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
     gfx.strokeStyle = styles.selectionColor
     gfx.beginPath()
-    gfx.lineTo(rect.x, rect.y)
+    gfx.moveTo(rect.x, rect.y)
     gfx.lineTo(rect.x + rect.w, rect.y)
     gfx.lineTo(rect.x + rect.w, rect.y + rect.h)
-    gfx.lineTo(rect.x - rect.w, rect.y + rect.h)
-    gfx.lineTo(rect.x - rect.w, rect.y - rect.h)
+    gfx.lineTo(rect.x, rect.y + rect.h)
+    gfx.lineTo(rect.x, rect.y)
     gfx.stroke()
   }
 }

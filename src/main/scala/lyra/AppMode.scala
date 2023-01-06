@@ -39,8 +39,18 @@ class RectangleSelectionMode(app: App) extends AppMode {
         selectionRect = Some(Rectangle(start.x, start.y, w, h))
       case None =>
     }
+    selectionRectStart = None
   }
-  def onMouseMove(e: MouseEvent): Unit = {}
+  def onMouseMove(e: MouseEvent): Unit = {
+    val p = app.clickToPoint(e)
+    selectionRectStart match {
+      case Some(start) =>
+        val w = p.x - start.x
+        val h = p.y - start.y
+        selectionRect = Some(Rectangle(start.x, start.y, w, h))
+      case None =>
+    }
+  }
 
 }
 // Initial mode for any shape

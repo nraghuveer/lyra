@@ -12,8 +12,8 @@ case class StylesConfig(
 
 class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   private var data: List[Shape] = initialData
-  private val mode: AppMode = new StrokeCreateMode(this)
-  val styles = StylesConfig("white", 4.0, "blue")
+  private var mode: AppMode = new StrokeCreateMode(this)
+  var styles = StylesConfig("white", 4.0, "blue")
   val commandController = new UndoCommandController()
 
   // should return a function that takes a event and return unit
@@ -39,6 +39,12 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     } else if (e.keyCode == 89 && e.ctrlKey) {
       val ret = commandController.redo()
       println("redo => " + ret)
+    } else if (e.keyCode == 79 && e.ctrlKey) {
+      mode = new RectangleSelectionMode(this)
+      println("Selection mode")
+    } else if (e.keyCode == 69 && e.ctrlKey) {
+      mode = new RectangleSelectionMode(this)
+      println("Edit Mode")
     }
   })
 
