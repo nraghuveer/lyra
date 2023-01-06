@@ -15,14 +15,25 @@ class RectangleSelectionMode(app: App) extends AppMode {
   var selectionRect: Option[Rectangle] = None
   var selectionRectStart: Option[Point] = None
 
-  def selectedShapes: List[Shape] = List()
+  private def selectedShapes: List[StaticShape] =
+    // this should have different styles
+    // the idea is to highlight the start and endpoints....
+    // if bounding rectangle
+    selectionRect match {
+      case Some(rect) =>
+        app.shapes.filter(shape => shape.overlap(rect)).
+          map(shape => shape.highlight)
+      case None => List()
+    }
 
   def editees: List[StaticShape] =
-    selectionRect match {
+    // selection Rectangle ++ shapes bounded in this rectangle
+    val rect = selectionRect match {
       case Some(rect) =>
         List(SelectionRectShape(rect, app.styles))
       case None => List()
     }
+    rect ++ selectedShapes
 
   def onMouseDown(e: MouseEvent): Unit = {
     // start drawing rectangle
@@ -32,6 +43,7 @@ class RectangleSelectionMode(app: App) extends AppMode {
   def onMouseUp(e: MouseEvent): Unit = {
     // support only top to bottom
     val p = app.clickToPoint(e)
+
     selectionRectStart match {
       case Some(start) =>
         val w = p.x - start.x
