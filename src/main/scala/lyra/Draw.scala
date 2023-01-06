@@ -4,6 +4,7 @@ import org.scalajs.dom
 
 import java.util.Optional
 import org.scalajs.dom.HTMLCanvasElement
+import org.scalajs.dom.CanvasRenderingContext2D
 
 case class Point(x: Double, y: Double) {
   def move(d: Delta): Point = Point(x + d.dx, y + d.dy)
@@ -36,6 +37,12 @@ object Delta {
 
 trait StaticShape:
   def draw(canvas: dom.HTMLCanvasElement): Unit
+  def applyStyles(gfx: dom.CanvasRenderingContext2D): Unit
+  def getGFX(canvas: dom.HTMLCanvasElement): dom.CanvasRenderingContext2D = {
+    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+    applyStyles(gfx)
+    gfx
+  }
 
 trait HighlightableShape extends StaticShape:
   def highlight: StaticShape;
@@ -46,9 +53,13 @@ trait Shape extends HighlightableShape:
 
 case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
     extends StaticShape {
-  override def draw(canvas: HTMLCanvasElement): Unit = {
-    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+
+  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionColor
+  }
+
+  override def draw(canvas: HTMLCanvasElement): Unit = {
+    val gfx = getGFX(canvas)
     gfx.beginPath()
     Rectangle.draw(gfx, rect)
     gfx.stroke()
@@ -64,6 +75,11 @@ case class StrokeShape(
     private val styles: StylesConfig
 ) extends ModifiableShape {
 
+  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
+    gfx.strokeStyle = styles.color
+    gfx.lineWidth = styles.lineWidth
+  }
+
   def highlight: StaticShape = {
     val interval = 10
     // select points with a interval, so that highlight points are selected
@@ -78,9 +94,7 @@ case class StrokeShape(
     contents.forall(r.contains)
   }
   def draw(canvas: dom.HTMLCanvasElement): Unit = {
-    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-    gfx.strokeStyle = styles.color
-    gfx.lineWidth = styles.lineWidth
+    val gfx = getGFX(canvas)
     gfx.beginPath()
     for (p <- contents) {
       gfx.lineTo(p.x, p.y)
@@ -108,10 +122,13 @@ case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
     Rectangle(topLeft.x, topLeft.y, sideLength, sideLength)
   }
 
-  override def draw(canvas: HTMLCanvasElement): Unit = {
-    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionPointColor
     gfx.fillStyle = styles.selectionColor
+  }
+
+  override def draw(canvas: HTMLCanvasElement): Unit = {
+    val gfx = getGFX(canvas)
     for (origin <- contents) {
       gfx.beginPath()
       // Rectangle.draw(gfx, squareInsideCircle(origin, 0.2))
