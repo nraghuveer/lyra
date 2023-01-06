@@ -44,7 +44,8 @@ trait Shape extends HighlightableShape:
   def overlap(r: Rectangle): Boolean
   def move(d: Delta): ModifiableShape
 
-case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig) extends StaticShape {
+case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
+    extends StaticShape {
   override def draw(canvas: HTMLCanvasElement): Unit = {
     val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
     gfx.strokeStyle = styles.selectionColor
@@ -58,14 +59,17 @@ trait ModifiableShape extends Shape {
   def modify(p: Point): ModifiableShape
 }
 
-
-case class StrokeShape(private val contents: List[Point], private val styles: StylesConfig) extends ModifiableShape {
+case class StrokeShape(
+    private val contents: List[Point],
+    private val styles: StylesConfig
+) extends ModifiableShape {
 
   def highlight: StaticShape = {
     val interval = 10
     // select points with a interval, so that highlight points are selected
-    val highlights = contents.zipWithIndex.filter((p, i) => i % interval == 0 || i == contents.length-1).
-                        map((p, i) => p)
+    val highlights = contents.zipWithIndex
+      .filter((p, i) => i % interval == 0 || i == contents.length - 1)
+      .map((p, i) => p)
     EndpointsHightlight(highlights, styles)
   }
 
@@ -94,12 +98,13 @@ case class StrokeShape(private val contents: List[Point], private val styles: St
   }
 }
 
-case class EndpointsHightlight(contents: List[Point], styles: StylesConfig) extends StaticShape {
+case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
+    extends StaticShape {
   private val radius = 4.0
 
   private def squareInsideCircle(origin: Point, radius: Double): Rectangle = {
     val sideLength = Math.sqrt(2) * radius
-    val topLeft = Point(origin.x - sideLength/2, origin.y - sideLength/2)
+    val topLeft = Point(origin.x - sideLength / 2, origin.y - sideLength / 2)
     Rectangle(topLeft.x, topLeft.y, sideLength, sideLength)
   }
 

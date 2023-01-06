@@ -17,7 +17,8 @@ case class CreateShapeCommand(shape: Shape) extends ShapeCommand {
   }
 }
 
-case class MoveShapeCommand(shapes: List[Shape], delta: Delta) extends ShapeCommand {
+case class MoveShapeCommand(shapes: List[Shape], delta: Delta)
+    extends ShapeCommand {
   override def run(setData: DataSetter): Unit = {
     // move the shapes if it is part of the given shapes with given delta
     def mover(s: Shape): Shape = {
