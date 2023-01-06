@@ -3,10 +3,12 @@ package lyra
 import org.scalajs.dom
 
 import java.util.Optional
+import org.scalajs.dom.HTMLCanvasElement
 
 case class Point(x: Double, y: Double) {
   def move(d: Delta): Point = Point(x + d.dx, y + d.dy)
 }
+
 case class Rectangle(x: Double, y: Double, w: Double, h: Double) {
   def contains(p: Point): Boolean = {
     val horizontal = p.x >= x && p.x <= x + w
@@ -21,10 +23,26 @@ object Delta {
   def from(p1: Point, p2: Point): Delta = new Delta(p2.x - p1.x, p2.y - p1.y)
 }
 
-trait Shape:
-  def overlap(r: Rectangle): Boolean
+trait StaticShape:
   def draw(canvas: dom.HTMLCanvasElement): Unit
+
+trait Shape extends StaticShape:
+  def overlap(r: Rectangle): Boolean
   def move(d: Delta): ModifiableShape
+
+case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig) extends StaticShape {
+  override def draw(canvas: HTMLCanvasElement): Unit = {
+    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+    gfx.strokeStyle = styles.selectionColor
+    gfx.beginPath()
+    gfx.lineTo(rect.x, rect.y)
+    gfx.lineTo(rect.x + rect.w, rect.y)
+    gfx.lineTo(rect.x + rect.w, rect.y + rect.h)
+    gfx.lineTo(rect.x - rect.w, rect.y + rect.h)
+    gfx.lineTo(rect.x - rect.w, rect.y - rect.h)
+    gfx.stroke()
+  }
+}
 
 trait ModifiableShape extends Shape {
   def modify(p: Point): ModifiableShape

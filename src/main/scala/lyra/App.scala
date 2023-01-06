@@ -4,12 +4,16 @@ import org.scalajs.dom
 
 import java.util.Optional
 
-case class StylesConfig(color: String, lineWidth: Double)
+case class StylesConfig(
+    color: String,
+    lineWidth: Double,
+    selectionColor: String
+)
 
 class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   private var data: List[Shape] = initialData
   private val mode: AppMode = new StrokeCreateMode(this)
-  val styles = StylesConfig("blue", 4.0)
+  val styles = StylesConfig("white", 4.0, "blue")
   val commandController = new UndoCommandController()
 
   // should return a function that takes a event and return unit
@@ -49,9 +53,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     data = List()
     commandController.run(this.dataSetter)
     // draw if there is a editee from the active mode
-    mode.curEditee match {
-      case Some(editee) => editee.draw(canvas)
-      case None         =>
+    for (shape <- mode.editees) {
+      shape.draw(canvas)
     }
     for (shape <- data) {
       shape.draw(canvas)
@@ -68,4 +71,6 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     val y = e.clientY - boundingRec.top
     Point(x, y)
   }
+
+  def shapes: List[Shape] = data
 }

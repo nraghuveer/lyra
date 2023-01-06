@@ -1,23 +1,58 @@
 package lyra
 import org.scalajs.dom
 import org.scalajs.dom.MouseEvent
+import scala.runtime.Static
 
 
 trait AppMode:
   def onMouseDown(e: dom.MouseEvent): Unit;
   def onMouseUp(e: dom.MouseEvent): Unit;
   def onMouseMove(e: dom.MouseEvent): Unit;
-  def curEditee: Option[Shape]; // so that they get a immutable type, so they cannot change it
+  def editees: List[StaticShape];
 
 // Stoke and Selection
+class RectangleSelectionMode(app: App) extends AppMode {
+  var selectionRect: Option[Rectangle] = None
+  var selectionRectStart: Option[Point] = None
 
+  def selectedShapes: List[Shape] = List()
+
+  def editees: List[StaticShape] =
+    selectionRect match {
+      case Some(rect) =>
+        List(SelectionRectShape(rect, app.styles))
+      case None => List()
+    }
+
+  def onMouseDown(e: MouseEvent): Unit = {
+    // start drawing rectangle
+    selectionRectStart = Some(app.clickToPoint(e))
+    selectionRect = None
+  }
+  def onMouseUp(e: MouseEvent): Unit = {
+    // support only top to bottom
+    val p = app.clickToPoint(e)
+    selectionRectStart match {
+      case Some(start) =>
+        val w = p.x - start.x
+        val h = p.y - start.y
+        selectionRect = Some(Rectangle(start.x, start.y, w, h))
+      case None =>
+    }
+  }
+  def onMouseMove(e: MouseEvent): Unit = {}
+
+}
 // Initial mode for any shape
-abstract class ShapeCreatorMode(app: App) extends AppMode {
+abstract class CreationMode(app: App) extends AppMode {
   def newShape(): ModifiableShape
 
   private var editee: Option[ModifiableShape] = None
 
-  override def curEditee: Option[Shape] = editee
+  override def editees: List[StaticShape] = editee match {
+    case Some(shape) => List(shape.asInstanceOf[StaticShape])
+    case None => List()
+  }
 
   override def onMouseDown(e: MouseEvent): Unit = {
     editee = Some(newShape().modify(app.clickToPoint(e)))
@@ -40,7 +75,7 @@ abstract class ShapeCreatorMode(app: App) extends AppMode {
   }
 }
 
-class StrokeCreateMode(app: App) extends ShapeCreatorMode(app) {
+class StrokeCreateMode(app: App) extends CreationMode(app) {
   override def newShape(): ModifiableShape = {
     StrokeShape(List(), app.styles)
   }

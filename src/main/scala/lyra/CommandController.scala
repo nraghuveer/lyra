@@ -6,8 +6,8 @@ trait CommandController:
   def log(c: ShapeCommand): Unit
   def undo(): Boolean
   def redo(): Boolean
-
   def run(setData: DataSetter): Unit
+
 
 class UndoCommandController extends CommandController {
   private var changes: List[ShapeCommand] = List[ShapeCommand]()
@@ -35,13 +35,13 @@ class UndoCommandController extends CommandController {
 
   override def undo(): Boolean = {
     if (undoStack.isEmpty) { return false }
-    log(new UndoCommand(undoStack.pop()))
+    log(UndoCommand(undoStack.pop()))
     true
   }
 
   override def redo(): Boolean = {
     if (redoStack.isEmpty) {return false}
-    log(new RedoCommand(redoStack.pop()))
+    log(RedoCommand(redoStack.pop()))
     true
   }
 }
