@@ -74,6 +74,8 @@ case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
 
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionColor
+    gfx.globalAlpha = styles.opacity
+    gfx.lineWidth = styles.lineWidth
   }
 
   override def highlights: List[Point] = rect.asPoints
@@ -107,6 +109,7 @@ case class StrokeShape(
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.color
     gfx.lineWidth = styles.lineWidth
+    gfx.globalAlpha = styles.opacity
   }
 
   def highlights: List[Point] = {
@@ -176,12 +179,11 @@ case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
   override def highlights: List[Point] = highlights
 }
 
-case class OpacityShape(shape: StaticShape, opacity: Double)
+case class OpacityShape(shape: StaticShape, styles: StylesConfig)
     extends StaticShape {
   def draw(canvas: HTMLCanvasElement): Unit = shape.draw(canvas)
   def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     shape.applyStyles(gfx)
-    gfx.globalAlpha = opacity
   }
 
 }

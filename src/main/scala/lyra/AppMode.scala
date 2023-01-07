@@ -79,7 +79,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
     // selection Rectangle ++ shapes bounded in this rectangle
     val rect = selectionRect match {
       case Some(rect) =>
-        List(SelectionRectShape(rect, app.styles))
+        List(SelectionRectShape(rect, app.styles.copy(lineWidth = 2)))
       case None => List()
     }
     rect ++ highlightShapes ++ dragMode.editees
@@ -151,9 +151,9 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
   override def editees: List[StaticShape] = {
     dragDelta match {
       case Some(delta) =>
-        selectionMode.highlightShapes ++ selectionMode.selectedShapes
+        (selectionMode.selectedShapes ++ selectionMode.highlightShapes)
           .map(shape => shape.move(delta))
-          .map(shape => OpacityShape(shape, opacity))
+          .map(shape => OpacityShape(shape, app.styles.copy(opacity = 0.5)))
       case None => List()
     }
   }

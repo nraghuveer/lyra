@@ -8,7 +8,8 @@ case class StylesConfig(
     color: String,
     lineWidth: Double,
     selectionColor: String,
-    selectionPointColor: String
+    selectionPointColor: String,
+    opacity: Double
 )
 
 class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
@@ -16,7 +17,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     color = "white",
     lineWidth = 4.0,
     selectionColor = "blue",
-    selectionPointColor = "red"
+    selectionPointColor = "red",
+    opacity = 1.0
   )
 
   private var data: List[Shape] = initialData
