@@ -1,7 +1,7 @@
 package lyra
 import org.scalajs.dom
-
 import scala.collection.mutable
+import io.circe.syntax._
 
 trait CommandController:
   def log(c: ShapeCommand): Unit
@@ -20,6 +20,7 @@ class UndoCommandController extends CommandController {
     }
   }
   override def log(c: ShapeCommand): Unit = {
+    println(c.asJson.noSpaces)
     changes = changes ++ List(c)
     // add to undo stack only if it is not undo command, else we endup in loop
     // where only last shape will be undoed
