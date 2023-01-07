@@ -5,16 +5,33 @@ import org.scalajs.dom
 import java.util.Optional
 import org.scalajs.dom.HTMLCanvasElement
 import org.scalajs.dom.CanvasRenderingContext2D
+import scala.compiletime.ops.boolean
+
+def isOnLine(lineStart: Point, lineEnd: Point, target: Point): Boolean = {
+  return lineStart.x <= target.x && target.x <= lineEnd.x &&
+    lineStart.y <= target.y && target.y <= lineEnd.y
+}
 
 case class Point(x: Double, y: Double) {
   def move(d: Delta): Point = Point(x + d.dx, y + d.dy)
 }
 
 case class Rectangle(x: Double, y: Double, w: Double, h: Double) {
+  private def topLeft: Point = Point(x, y)
+  private def topRight: Point = Point(x + w, y)
+  private def bottomRight: Point = Point(x + w, y + h)
+  private def bottomLeft: Point = Point(x, y + h)
+
   def contains(p: Point): Boolean = {
     val horizontal = p.x >= x && p.x <= x + w
     val vertical = p.y >= y && p.y <= y + h
     horizontal && vertical
+  }
+  def onContour(p: Point): Boolean = {
+    isOnLine(topLeft, topRight, p) ||
+    isOnLine(topRight, bottomRight, p) ||
+    isOnLine(bottomRight, bottomLeft, p) ||
+    isOnLine(bottomLeft, topLeft, p)
   }
 }
 
