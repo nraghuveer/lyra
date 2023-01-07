@@ -32,7 +32,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   private var strokeMode = new StrokeCreateMode(this)
   private var rectangleSelectionMode = new RectangleSelectionMode(this)
   private var mode: AppMode = new StrokeCreateMode(this)
-  val commandController = new UndoCommandController()
+  val commandController = new UndoRedoCommandController()
 
   switchToEditMode
   attachKeyBindings

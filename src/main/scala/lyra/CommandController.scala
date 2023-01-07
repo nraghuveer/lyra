@@ -9,8 +9,7 @@ trait CommandController:
   def redo(): Boolean
   def run(setData: DataSetter): Unit
 
-class UndoCommandController extends CommandController {
-  private var changes: List[ShapeCommand] = List[ShapeCommand]()
+class UndoRedoCommandController(private var changes: List[ShapeCommand] = List()) extends CommandController {
   private val undoStack: mutable.Stack[ShapeCommand] = mutable.Stack()
   private val redoStack: mutable.Stack[UndoCommand] = mutable.Stack()
 
