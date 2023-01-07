@@ -56,6 +56,8 @@ object Delta {
 }
 
 trait StaticShape:
+  val styles: StylesConfig
+  def patchStyles(newStyles: StylesConfig): StaticShape
   def draw(canvas: dom.HTMLCanvasElement): Unit
   def applyStyles(gfx: dom.CanvasRenderingContext2D): Unit
   def getGFX(canvas: dom.HTMLCanvasElement): dom.CanvasRenderingContext2D = {
@@ -72,6 +74,8 @@ trait Shape extends StaticShape:
 case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
     extends Shape {
 
+  override def patchStyles(newStyles: StylesConfig): StaticShape =
+    SelectionRectShape(rect, styles)
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionColor
     gfx.globalAlpha = styles.opacity
@@ -103,9 +107,11 @@ trait ModifiableShape extends Shape {
 
 case class StrokeShape(
     private val contents: List[Point],
-    private val styles: StylesConfig
+    val styles: StylesConfig
 ) extends ModifiableShape {
 
+  override def patchStyles(newStyles: StylesConfig): StaticShape =
+    StrokeShape(contents, newStyles)
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.color
     gfx.lineWidth = styles.lineWidth
@@ -147,6 +153,8 @@ case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
     extends Shape {
   private val radius = 4.0
 
+  override def patchStyles(newStyles: StylesConfig): StaticShape =
+    EndpointsHightlight(contents, newStyles)
   private def squareInsideCircle(origin: Point, radius: Double): Rectangle = {
     val sideLength = Math.sqrt(2) * radius
     val topLeft = Point(origin.x - sideLength / 2, origin.y - sideLength / 2)
@@ -177,14 +185,4 @@ case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
   override def overlap(r: Rectangle): Boolean = contents.forall(r.contains)
 
   override def highlights: List[Point] = highlights
-}
-
-case class OpacityShape(shape: StaticShape, styles: StylesConfig)
-    extends StaticShape {
-  def draw(canvas: HTMLCanvasElement): Unit = shape.draw(canvas)
-  def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
-    shape.applyStyles(gfx)
-    gfx.globalAlpha = styles.opacity
-  }
-
 }

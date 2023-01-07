@@ -152,7 +152,7 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
       case Some(delta) =>
         (selectionMode.selectedShapes ++ selectionMode.highlightShapes)
           .map(shape => shape.move(delta))
-          .map(shape => OpacityShape(shape, app.styles.copy(opacity = 0.1)))
+          .map(shape => shape.patchStyles(shape.styles.copy(opacity = opacity)))
       case None => List()
     }
   }
