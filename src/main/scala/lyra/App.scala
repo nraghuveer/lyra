@@ -33,8 +33,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     } else if (e.keyCode == 89 && e.ctrlKey) {
       val ret = commandController.redo()
       println("redo => " + ret)
-    } else if (e.keyCode == 79 && e.ctrlKey) {
-      switchToRectSelectionMode
+    } else if (e.keyCode == 83 && e.ctrlKey) {
+      switchToSelectionMode
     } else if (e.keyCode == 69 && e.ctrlKey) {
       switchToEditMode
     }
@@ -46,7 +46,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     attachMouseEvtHandlers(mode)
   }
 
-  def switchToRectSelectionMode = {
+  def switchToSelectionMode = {
     mode = new RectangleSelectionMode(this)
     attachMouseEvtHandlers(mode)
   }

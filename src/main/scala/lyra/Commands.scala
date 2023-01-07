@@ -31,13 +31,15 @@ case class MoveShapesCommand(shapes: List[Shape], delta: Delta)
   }
 
   override def undo(setData: DataSetter): Unit = {
-    def mover(s: Shape): Shape = {
-      if (shapes.contains(s)) {
-        s.move(delta.reverse())
-      }
-      s
-    }
-    setData(old => old.map(mover))
+    setData(old => {
+      old.map(s => {
+        // before checking if the shape exists in the list
+        // apply the move...
+        if (shapes.map(s => s.move(delta)).contains(s)) {
+          s.move(delta.reverse())
+        } else { s }
+      })
+    })
   }
 }
 
