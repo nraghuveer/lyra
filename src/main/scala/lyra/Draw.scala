@@ -184,6 +184,7 @@ case class OpacityShape(shape: StaticShape, styles: StylesConfig)
   def draw(canvas: HTMLCanvasElement): Unit = shape.draw(canvas)
   def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     shape.applyStyles(gfx)
+    gfx.globalAlpha = styles.opacity
   }
 
 }

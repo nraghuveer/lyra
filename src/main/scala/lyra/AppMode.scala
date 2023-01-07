@@ -59,7 +59,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
     // if bounding rectangle
     selectionRect match {
       case Some(rect) =>
-        app.shapes ++ app.shapes
+        app.shapes
           .filter(shape => shape.overlap(rect))
       case None => List()
     }
@@ -68,8 +68,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
   override def highlightShapes: List[Shape] = {
     selectionRect match {
       case Some(rect) =>
-        app.shapes
-          .filter(shape => shape.overlap(rect))
+        selectedShapes
           .map(shape => EndpointsHightlight(shape.highlights, app.styles))
       case None => List()
     }
@@ -153,7 +152,7 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
       case Some(delta) =>
         (selectionMode.selectedShapes ++ selectionMode.highlightShapes)
           .map(shape => shape.move(delta))
-          .map(shape => OpacityShape(shape, app.styles.copy(opacity = 0.5)))
+          .map(shape => OpacityShape(shape, app.styles.copy(opacity = 0.1)))
       case None => List()
     }
   }
