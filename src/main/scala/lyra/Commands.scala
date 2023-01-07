@@ -53,7 +53,7 @@ case class UndoCommand(command: ShapeCommand) extends ShapeCommand {
   }
 }
 
-class RedoCommand(command: ShapeCommand) extends ShapeCommand {
+case class RedoCommand(command: ShapeCommand) extends ShapeCommand {
   override def run(setData: DataSetter): Unit = {
     command.undo(setData)
   }

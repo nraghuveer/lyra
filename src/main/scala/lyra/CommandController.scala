@@ -24,6 +24,7 @@ class UndoCommandController extends CommandController {
     // where only last shape will be undoed
     c match {
       case uc: UndoCommand => redoStack.push(uc)
+      case rc: RedoCommand => undoStack.push(rc)
       // if there is any other shape otherthan undocommand
       // reset the redostack
       case _: ShapeCommand =>
