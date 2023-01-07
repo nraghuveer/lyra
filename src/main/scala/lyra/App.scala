@@ -8,7 +8,8 @@ case class StylesConfig(
     color: String,
     lineWidth: Double,
     selectionColor: String,
-    selectionPointColor: String
+    selectionPointColor: String,
+    opacity: Double
 )
 
 class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
@@ -16,7 +17,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     color = "white",
     lineWidth = 4.0,
     selectionColor = "blue",
-    selectionPointColor = "red"
+    selectionPointColor = "red",
+    opacity = 1.0
   )
 
   private var data: List[Shape] = initialData
@@ -78,11 +80,12 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     clearCanvas(canvas)
     data = List()
     commandController.run(this.dataSetter)
-    // draw if there is a editee from the active mode
-    for (shape <- mode.editees) {
+
+    for (shape <- data) {
       shape.draw(canvas)
     }
-    for (shape <- data) {
+    // draw if there is a editee from the active mode
+    for (shape <- mode.editees) {
       shape.draw(canvas)
     }
   }
