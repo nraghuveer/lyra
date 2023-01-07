@@ -1,5 +1,9 @@
 package lyra
 
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.semiauto._
+
 type DataSetter = (List[Shape] => List[Shape]) => Unit
 
 trait ShapeCommand:
@@ -62,3 +66,6 @@ case class RedoCommand(command: ShapeCommand) extends ShapeCommand {
     command.run(setData)
   }
 }
+
+implicit val createShapeCommandDecoder: Decoder[CreateShapeCommand] = deriveDecoder[CreateShapeCommand]
+implicit val createShapeCommandEncoder: Encoder[CreateShapeCommand] = deriveEncoder[CreateShapeCommand]

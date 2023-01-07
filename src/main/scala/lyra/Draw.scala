@@ -1,5 +1,9 @@
 package lyra
 
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.semiauto._
+
 import org.scalajs.dom
 import scala.scalajs.js
 
@@ -111,8 +115,8 @@ trait ModifiableShape extends Shape {
 
 case class StrokeShape(
     id: String, user: String,
-    private val contents: List[Point],
-    val styles: StylesConfig
+    contents: List[Point],
+    styles: StylesConfig
 ) extends ModifiableShape {
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
@@ -186,3 +190,26 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
 
   override def highlights: List[Point] = highlights
 }
+
+  implicit val pointDecoder: Decoder[Point] = deriveDecoder
+  implicit val pointEncoder: Encoder[Point] = deriveEncoder
+
+  implicit val rectangleDecoder: Decoder[Rectangle] = deriveDecoder
+  implicit val rectangleEncoder: Encoder[Rectangle] = deriveEncoder
+
+  implicit val deltaDecoder: Decoder[Delta] = deriveDecoder
+  implicit val deltaEncoder: Encoder[Delta] = deriveEncoder
+
+  implicit val selectionRectShapeDecoder: Decoder[SelectionRectShape] = deriveDecoder
+  implicit val selectionRectShapeEncoder: Encoder[SelectionRectShape] = deriveEncoder
+
+  implicit val strokeShapeDecoder: Decoder[StrokeShape] = deriveDecoder
+  implicit val strokeShapeEncoder: Encoder[StrokeShape] = deriveEncoder
+
+  implicit val endpointsHighlightDecoder: Decoder[EndpointsHighlight] = deriveDecoder
+  implicit val endpointsHighlightEncoder: Encoder[EndpointsHighlight] = deriveEncoder
+
+  implicit val shapeDecoder: Decoder[Shape] = deriveDecoder
+  implicit val shapeEncoder: Encoder[Shape] = deriveEncoder
+  implicit val mshapeDecoder: Decoder[ModifiableShape] = deriveDecoder
+  implicit val mshapeEncoder: Encoder[ModifiableShape] = deriveEncoder
