@@ -8,6 +8,7 @@ trait AppMode:
   def onMouseUp(e: dom.MouseEvent): Unit;
   def onMouseMove(e: dom.MouseEvent): Unit;
   def editees: List[StaticShape];
+  def clearState: Unit
 
 trait SelectionMode extends AppMode:
   def isSelection: Boolean
@@ -22,6 +23,10 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
   var selectionRectStart: Option[Point] = None
   private val dragMode: AppMode = new RectangleSelectionDragMode(app, this)
 
+  override def clearState: Unit = {
+    selectionRect = None
+    selectionRectStart = None
+  }
   override def isOnSelectionContour(p: Point): Boolean = selectionRect match {
     case Some(rect) => rect.onContour(p)
     case None       => false
@@ -124,6 +129,10 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
   private var start: Option[Point] = None
   private var dragDelta: Option[Delta] = None
 
+  override def clearState: Unit = {
+    start = None
+    dragDelta = None
+  }
   override def onMouseDown(e: MouseEvent): Unit = {
     val p = app.clickToPoint(e)
     if (selectionMode.isInSelection(Some(p))) {
@@ -143,8 +152,16 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
   }
 
   override def onMouseUp(e: MouseEvent): Unit = {
-    start = None
-    dragDelta = None
+    dragDelta match {
+      case Some(delta) =>
+        val cmd =
+          MoveShapesCommand(selectionMode.selectedShapes, delta)
+        app.commandController.log(cmd)
+        clearState
+      case None =>
+    }
+    clearState
+
   }
 
   override def editees: List[StaticShape] = {
@@ -191,6 +208,7 @@ abstract class CreationMode(app: App) extends AppMode {
 }
 
 class StrokeCreateMode(app: App) extends CreationMode(app) {
+  override def clearState: Unit = {}
   override def newShape(): ModifiableShape = {
     StrokeShape(List(), app.styles)
   }
