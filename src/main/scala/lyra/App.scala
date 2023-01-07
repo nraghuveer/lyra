@@ -29,26 +29,24 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   val user: String = "raghuveer1"
 
   private var data: List[Shape] = initialData
-  private var strokeMode = new StrokeCreateMode(this)
-  private var rectangleSelectionMode = new RectangleSelectionMode(this)
   private var mode: AppMode = new StrokeCreateMode(this)
   val commandController = new UndoRedoCommandController()
 
-  switchToEditMode
-  attachKeyBindings
-  attachResizeBindings
-  modeSwitchBindings
-  undoRedoBindings
+  switchToEditMode()
+  attachKeyBindings()
+  attachResizeBindings()
+  modeSwitchBindings()
+  undoRedoBindings()
 
-  def switchToEditMode = {
+  private def switchToEditMode(): Unit = {
     mode = new StrokeCreateMode(this)
     attachMouseEvtHandlers(mode)
   }
-  def undoRedoBindings: Unit = {
+  private def undoRedoBindings(): Unit = {
     dom.document
       .querySelector("#btnUndo")
       .asInstanceOf[HTMLButtonElement]
-      .onclick = (e) => {
+      .onclick = _ => {
       commandController.undo()
       // TODO: Find a fix for this, remove explicit paint call
       paint()
@@ -57,39 +55,39 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     dom.document
       .querySelector("#btnRedo")
       .asInstanceOf[HTMLButtonElement]
-      .onclick = (e) => {
+      .onclick = _ => {
       commandController.redo()
       paint()
     }
 
   }
-  def attachResizeBindings: Unit = {
-    def setCanvasSize: Unit = {
+  private def attachResizeBindings(): Unit = {
+    def setCanvasSize(): Unit = {
       canvas.height = (dom.window.innerHeight - 100).asInstanceOf[Int]
       canvas.width = (dom.window.innerWidth - 100).asInstanceOf[Int]
     }
-    dom.window.onresize = (_) => {
-      setCanvasSize
+    dom.window.onresize = _ => {
+      setCanvasSize()
     }
-    setCanvasSize
+    setCanvasSize()
   }
 
-  def modeSwitchBindings: Unit = {
+  private def modeSwitchBindings(): Unit = {
     dom.document
       .querySelector("#appModeSelect")
       .asInstanceOf[dom.HTMLInputElement]
-      .onchange = (e) => {
+      .onchange = e => {
       val value = e.target.valueOf
         .asInstanceOf[HTMLSelectElement]
         .value
       value match {
-        case "selection" => switchToSelectionMode
-        case "edit"      => switchToEditMode
+        case "selection" => switchToSelectionMode()
+        case "edit"      => switchToEditMode()
       }
     }
   }
 
-  def attachKeyBindings: Unit = {
+  private def attachKeyBindings(): Unit = {
     dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
       if (e.keyCode == 90 && e.ctrlKey) {
         val ret = commandController.undo()
@@ -98,23 +96,23 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
         val ret = commandController.redo()
         println("redo => " + ret)
       } else if (e.keyCode == 83 && e.ctrlKey) {
-        switchToSelectionMode
+        switchToSelectionMode()
       } else if (e.keyCode == 69 && e.ctrlKey) {
-        switchToEditMode
+        switchToEditMode()
       }
     })
   }
 
-  def switchToSelectionMode = {
+  private def switchToSelectionMode(): Unit = {
     mode = new RectangleSelectionMode(this)
     attachMouseEvtHandlers(mode)
   }
 
   // should return a function that takes a event and return unit
-  type ActionFnType[E] = E => Unit
-  def renderWrapper[E](fn: ActionFnType[E]): ActionFnType[E] = {
+  private type ActionFnType[E] = E => Unit
+  private def renderWrapper[E](fn: ActionFnType[E]): ActionFnType[E] = {
     // the return should be executed after then fn is executed
-    return (e) => {
+    e => {
       fn(e)
       dom.window.setTimeout(
         () => paint(),
@@ -123,7 +121,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     }
   }
 
-  def attachMouseEvtHandlers(mode: AppMode) = {
+  private def attachMouseEvtHandlers(mode: AppMode): Unit = {
     canvas.onmouseup = renderWrapper(e => mode.onMouseUp(e))
     canvas.onmousedown = renderWrapper(e => mode.onMouseDown(e))
     canvas.onmousemove = renderWrapper(e => mode.onMouseMove(e))
@@ -153,7 +151,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     }
   }
 
-  def dataSetter(changeFn: List[Shape] => List[Shape]): Unit = {
+  private def dataSetter(changeFn: List[Shape] => List[Shape]): Unit = {
     data = changeFn(data)
   }
 
