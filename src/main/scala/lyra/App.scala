@@ -3,6 +3,8 @@ package lyra
 import org.scalajs.dom
 
 import java.util.Optional
+import org.scalajs.dom.HTMLSelectElement
+import org.scalajs.dom.HTMLButtonElement
 
 case class StylesConfig(
     color: String,
@@ -26,24 +28,76 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   private var rectangleSelectionMode = new RectangleSelectionMode(this)
   private var mode: AppMode = new StrokeCreateMode(this)
   val commandController = new UndoCommandController()
-  dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
-    if (e.keyCode == 90 && e.ctrlKey) {
-      val ret = commandController.undo()
-      println("undo => " + ret)
-    } else if (e.keyCode == 89 && e.ctrlKey) {
-      val ret = commandController.redo()
-      println("redo => " + ret)
-    } else if (e.keyCode == 83 && e.ctrlKey) {
-      switchToSelectionMode
-    } else if (e.keyCode == 69 && e.ctrlKey) {
-      switchToEditMode
-    }
-  })
+
   switchToEditMode
+  attachKeyBindings
+  attachResizeBindings
+  modeSwitchBindings
+  undoRedoBindings
 
   def switchToEditMode = {
     mode = new StrokeCreateMode(this)
     attachMouseEvtHandlers(mode)
+  }
+  def undoRedoBindings: Unit = {
+    dom.document
+      .querySelector("#btnUndo")
+      .asInstanceOf[HTMLButtonElement]
+      .onclick = (e) => {
+      commandController.undo()
+      // TODO: Find a fix for this, remove explicit paint call
+      paint()
+    }
+
+    dom.document
+      .querySelector("#btnRedo")
+      .asInstanceOf[HTMLButtonElement]
+      .onclick = (e) => {
+      commandController.redo()
+      paint()
+    }
+
+  }
+  def attachResizeBindings: Unit = {
+    def setCanvasSize: Unit = {
+      canvas.height = (dom.window.innerHeight - 100).asInstanceOf[Int]
+      canvas.width = (dom.window.innerWidth - 100).asInstanceOf[Int]
+    }
+    dom.window.onresize = (_) => {
+      setCanvasSize
+    }
+    setCanvasSize
+  }
+
+  def modeSwitchBindings: Unit = {
+    dom.document
+      .querySelector("#appModeSelect")
+      .asInstanceOf[dom.HTMLInputElement]
+      .onchange = (e) => {
+      val value = e.target.valueOf
+        .asInstanceOf[HTMLSelectElement]
+        .value
+      value match {
+        case "selection" => switchToSelectionMode
+        case "edit"      => switchToEditMode
+      }
+    }
+  }
+
+  def attachKeyBindings: Unit = {
+    dom.document.onkeydown = renderWrapper((e: dom.KeyboardEvent) => {
+      if (e.keyCode == 90 && e.ctrlKey) {
+        val ret = commandController.undo()
+        println("undo => " + ret)
+      } else if (e.keyCode == 89 && e.ctrlKey) {
+        val ret = commandController.redo()
+        println("redo => " + ret)
+      } else if (e.keyCode == 83 && e.ctrlKey) {
+        switchToSelectionMode
+      } else if (e.keyCode == 69 && e.ctrlKey) {
+        switchToEditMode
+      }
+    })
   }
 
   def switchToSelectionMode = {
@@ -68,6 +122,10 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     canvas.onmouseup = renderWrapper(e => mode.onMouseUp(e))
     canvas.onmousedown = renderWrapper(e => mode.onMouseDown(e))
     canvas.onmousemove = renderWrapper(e => mode.onMouseMove(e))
+    canvas.addEventListener("touchstart", e => mode.onMouseDown(e))
+    canvas.addEventListener("touchmove", e => mode.onMouseMove(e))
+    canvas.addEventListener("touchend", e => mode.onMouseUp(e))
+    canvas.addEventListener("touchleave", e => mode.onMouseUp(e))
   }
 
   private def clearCanvas(canvas: dom.HTMLCanvasElement): Unit = {
