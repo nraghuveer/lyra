@@ -11,13 +11,21 @@ trait AppMode:
 
 trait SelectionMode extends AppMode:
   def isSelection: Boolean
+  def isOnSelectionContour(p: Point): Boolean
+  def isInSelection(point: Option[Point]): Boolean
+  def selectedShapes: List[Shape]
+  def highlightShapes: List[Shape]
 
 // Stoke and Selection
 class RectangleSelectionMode(app: App) extends SelectionMode {
   var selectionRect: Option[Rectangle] = None
   var selectionRectStart: Option[Point] = None
-  private val dragMode: AppMode = new RectangleSelectionDragMode(this)
+  private val dragMode: AppMode = new RectangleSelectionDragMode(app, this)
 
+  override def isOnSelectionContour(p: Point): Boolean = selectionRect match {
+    case Some(rect) => rect.onContour(p)
+    case None       => false
+  }
   override def isSelection: Boolean = selectionRect match {
     case Some(_) => true
     case None    => false
@@ -34,7 +42,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
     }
   }
 
-  def isInSelection(point: Option[Point]): Boolean = {
+  override def isInSelection(point: Option[Point]): Boolean = {
     point match {
       case Some(p) =>
         selectionRect match {
@@ -45,17 +53,27 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
     }
   }
 
-  private def selectedShapes: List[StaticShape] =
+  override def selectedShapes: List[Shape] = {
     // this should have different styles
     // the idea is to highlight the start and endpoints....
     // if bounding rectangle
     selectionRect match {
       case Some(rect) =>
-        app.shapes
+        app.shapes ++ app.shapes
           .filter(shape => shape.overlap(rect))
-          .map(shape => shape.highlight)
       case None => List()
     }
+  }
+
+  override def highlightShapes: List[Shape] = {
+    selectionRect match {
+      case Some(rect) =>
+        app.shapes
+          .filter(shape => shape.overlap(rect))
+          .map(shape => EndpointsHightlight(shape.highlights, app.styles))
+      case None => List()
+    }
+  }
 
   def editees: List[StaticShape] =
     // selection Rectangle ++ shapes bounded in this rectangle
@@ -64,7 +82,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
         List(SelectionRectShape(rect, app.styles))
       case None => List()
     }
-    rect ++ selectedShapes
+    rect ++ highlightShapes ++ dragMode.editees
 
   def onMouseDown(e: MouseEvent): Unit = {
     val p = app.clickToPoint(e)
@@ -101,17 +119,44 @@ class RectangleSelectionMode(app: App) extends SelectionMode {
   }
 }
 
-class RectangleSelectionDragMode(selectionMode: SelectionMode) extends AppMode {
+class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
+    extends AppMode {
+  private val opacity: Double = 0.3
+  private var start: Option[Point] = None
   private var dragDelta: Option[Delta] = None
-  private val opacity: Double = 0.4
 
-  override def onMouseDown(e: MouseEvent): Unit = {}
-  override def onMouseMove(e: MouseEvent): Unit = {
-    if (!selectionMode.isSelection)
-      return
+  override def onMouseDown(e: MouseEvent): Unit = {
+    val p = app.clickToPoint(e)
+    if (selectionMode.isInSelection(Some(p))) {
+      start = Some(p)
+    } else {
+      start = None
+    }
   }
-  override def onMouseUp(e: MouseEvent): Unit = {}
-  override def editees: List[StaticShape] = List()
+  override def onMouseMove(e: MouseEvent): Unit = {
+    val dragEnd = app.clickToPoint(e)
+    start match {
+      case Some(dragStart) =>
+        dragDelta = Some(Delta.from(dragStart, dragEnd))
+      case None =>
+        dragDelta = None
+    }
+  }
+
+  override def onMouseUp(e: MouseEvent): Unit = {
+    start = None
+    dragDelta = None
+  }
+
+  override def editees: List[StaticShape] = {
+    dragDelta match {
+      case Some(delta) =>
+        selectionMode.highlightShapes ++ selectionMode.selectedShapes
+          .map(shape => shape.move(delta))
+          .map(shape => OpacityShape(shape, opacity))
+      case None => List()
+    }
+  }
 }
 
 // Initial mode for any shape

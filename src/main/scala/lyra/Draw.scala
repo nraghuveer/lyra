@@ -22,6 +22,8 @@ case class Rectangle(x: Double, y: Double, w: Double, h: Double) {
   private def bottomRight: Point = Point(x + w, y + h)
   private def bottomLeft: Point = Point(x, y + h)
 
+  def asPoints = List(topLeft, topRight, bottomRight, bottomLeft)
+
   def contains(p: Point): Boolean = {
     val horizontal = p.x >= x && p.x <= x + w
     val vertical = p.y >= y && p.y <= y + h
@@ -62,18 +64,27 @@ trait StaticShape:
     gfx
   }
 
-trait HighlightableShape extends StaticShape:
-  def highlight: StaticShape;
-
-trait Shape extends HighlightableShape:
+trait Shape extends StaticShape:
   def overlap(r: Rectangle): Boolean
-  def move(d: Delta): ModifiableShape
+  def move(d: Delta): Shape
+  def highlights: List[Point]
 
 case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
-    extends StaticShape {
+    extends Shape {
 
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionColor
+  }
+
+  override def highlights: List[Point] = rect.asPoints
+  override def overlap(r: Rectangle): Boolean =
+    rect.asPoints.forall(rect.contains)
+  override def move(d: Delta): Shape = d match {
+    case Delta(dx, dy) =>
+      rect match {
+        case Rectangle(x, y, w, h) =>
+          SelectionRectShape(Rectangle(x + dx, y + dy, w, h), styles)
+      }
   }
 
   override def draw(canvas: HTMLCanvasElement): Unit = {
@@ -98,13 +109,12 @@ case class StrokeShape(
     gfx.lineWidth = styles.lineWidth
   }
 
-  def highlight: StaticShape = {
+  def highlights: List[Point] = {
     val interval = 10
     // select points with a interval, so that highlight points are selected
-    val highlights = contents.zipWithIndex
+    contents.zipWithIndex
       .filter((p, i) => i % interval == 0 || i == contents.length - 1)
       .map((p, i) => p)
-    EndpointsHightlight(highlights, styles)
   }
 
   def overlap(r: Rectangle): Boolean = {
@@ -131,7 +141,7 @@ case class StrokeShape(
 }
 
 case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
-    extends StaticShape {
+    extends Shape {
   private val radius = 4.0
 
   private def squareInsideCircle(origin: Point, radius: Double): Rectangle = {
@@ -156,4 +166,22 @@ case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
       gfx.stroke()
     }
   }
+
+  override def move(d: Delta): Shape = {
+    EndpointsHightlight(contents.map(p => p.move(d)), styles)
+  }
+
+  override def overlap(r: Rectangle): Boolean = contents.forall(r.contains)
+
+  override def highlights: List[Point] = highlights
+}
+
+case class OpacityShape(shape: StaticShape, opacity: Double)
+    extends StaticShape {
+  def draw(canvas: HTMLCanvasElement): Unit = shape.draw(canvas)
+  def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
+    shape.applyStyles(gfx)
+    gfx.globalAlpha = opacity
+  }
+
 }
