@@ -9,7 +9,7 @@ trait AppMode:
   def onMouseMove(e: dom.MouseEvent): Unit
   def editees: List[StaticShape]
   def clearState(): Unit
-  def getUniqueId: String = java.util.UUID.randomUUID().toString
+  def getUniqueId: String = "adsf"
 
 trait SelectionMode extends AppMode:
   def isSelection: Boolean

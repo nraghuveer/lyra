@@ -9,7 +9,7 @@ import org.scalajs.dom.CanvasRenderingContext2D
 import scala.compiletime.ops.boolean
 
 def isOnLine(lineStart: Point, lineEnd: Point, target: Point): Boolean = {
-  return lineStart.x <= target.x && target.x <= lineEnd.x &&
+   lineStart.x <= target.x && target.x <= lineEnd.x &&
     lineStart.y <= target.y && target.y <= lineEnd.y
 }
 
