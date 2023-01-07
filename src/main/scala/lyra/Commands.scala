@@ -17,17 +17,17 @@ case class CreateShapeCommand(shape: Shape) extends ShapeCommand {
   }
 }
 
-case class MoveShapeCommand(shapes: List[Shape], delta: Delta)
+case class MoveShapesCommand(shapes: List[Shape], delta: Delta)
     extends ShapeCommand {
   override def run(setData: DataSetter): Unit = {
     // move the shapes if it is part of the given shapes with given delta
-    def mover(s: Shape): Shape = {
-      if (shapes.contains(s)) {
-        s.move(delta)
-      }
-      s
-    }
-    setData(old => old.map(mover))
+    setData(old =>
+      old.map(s => {
+        if (shapes.contains(s)) {
+          s.move(delta)
+        } else { s }
+      })
+    )
   }
 
   override def undo(setData: DataSetter): Unit = {

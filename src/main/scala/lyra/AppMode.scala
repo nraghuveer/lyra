@@ -158,6 +158,7 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
           MoveShapesCommand(selectionMode.selectedShapes, delta)
         app.commandController.log(cmd)
         clearState
+        selectionMode.clearState
       case None =>
     }
     clearState
