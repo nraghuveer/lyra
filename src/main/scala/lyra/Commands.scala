@@ -1,8 +1,12 @@
 package lyra
 
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.semiauto._
+
 type DataSetter = (List[Shape] => List[Shape]) => Unit
 
-trait ShapeCommand:
+sealed trait ShapeCommand:
   def undo(setData: DataSetter): Unit
   def run(setData: DataSetter): Unit
 
@@ -62,3 +66,12 @@ case class RedoCommand(command: ShapeCommand) extends ShapeCommand {
     command.run(setData)
   }
 }
+
+implicit val createShapeCommandDecoder: Decoder[CreateShapeCommand] = deriveDecoder[CreateShapeCommand]
+implicit val createShapeCommandEncoder: Encoder[CreateShapeCommand] = deriveEncoder[CreateShapeCommand]
+implicit val shapeCommandDecoder: Decoder[ShapeCommand] = deriveDecoder
+implicit val shapeCommandEncoder: Encoder[ShapeCommand] = deriveEncoder
+implicit val undoCommandDecoder: Decoder[UndoCommand] = deriveDecoder
+implicit val undoCommandEncoder: Encoder[UndoCommand] = deriveEncoder
+implicit val redoCommandDecoder: Decoder[RedoCommand] = deriveDecoder
+implicit val redoCommandEncoder: Encoder[RedoCommand] = deriveEncoder

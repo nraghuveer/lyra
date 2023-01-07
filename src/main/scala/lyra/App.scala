@@ -5,6 +5,10 @@ import org.scalajs.dom
 import java.util.Optional
 import org.scalajs.dom.HTMLSelectElement
 import org.scalajs.dom.HTMLButtonElement
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.semiauto._
+
 
 case class StylesConfig(
     color: String,
@@ -162,3 +166,6 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
 
   def shapes: List[Shape] = data
 }
+
+implicit val stylesConfigDecoder: Decoder[StylesConfig] = deriveDecoder
+implicit val stylesConfigEncoder: Encoder[StylesConfig] = deriveEncoder

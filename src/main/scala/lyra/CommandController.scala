@@ -1,7 +1,7 @@
 package lyra
 import org.scalajs.dom
-
 import scala.collection.mutable
+import io.circe.syntax._
 
 trait CommandController:
   def log(c: ShapeCommand): Unit
