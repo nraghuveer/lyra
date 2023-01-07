@@ -2,6 +2,7 @@ package lyra
 import org.scalajs.dom
 import org.scalajs.dom.MouseEvent
 import scala.runtime.Static
+import scala.scalajs.js
 
 trait AppMode:
   def onMouseDown(e: dom.MouseEvent): Unit
@@ -9,7 +10,7 @@ trait AppMode:
   def onMouseMove(e: dom.MouseEvent): Unit
   def editees: List[StaticShape]
   def clearState(): Unit
-  def getUniqueId: String = "adsf"
+  def getUniqueId: String = java.util.UUID.randomUUID().toString
 
 trait SelectionMode extends AppMode:
   def isSelection: Boolean

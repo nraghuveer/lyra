@@ -8,7 +8,12 @@ lazy val lyra = project
   .enablePlugins(ScalaJSPlugin)
   .settings(
     scalaVersion := "3.2.1",
-    scalacOptions ++= Seq("-encoding", "utf-8", "-deprecation", "-feature"),
+    scalacOptions ++= Seq(
+      "-encoding",
+      "utf-8",
+      "-deprecation",
+      "-feature"
+    ),
     scalaJSUseMainModuleInitializer := true,
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.ESModule)
@@ -17,12 +22,15 @@ lazy val lyra = project
         )
     },
     libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-dom" % "2.2.0"
-    ),
+      "org.scala-js" %%% "scalajs-dom" % "2.2.0",
+      "io.circe" %%% "circe-core" % "0.14.3",
+      "io.circe" %%% "circe-parser" % "0.14.3",
+      "io.circe" %%% "circe-generic" % "0.14.3",
+    ) ++ Seq(("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)),
     publicDev := linkerOutputDirectory((Compile / fastLinkJS).value)
-      .getAbsolutePath(),
+      .getAbsolutePath,
     publicProd := linkerOutputDirectory((Compile / fullLinkJS).value)
-      .getAbsolutePath()
+      .getAbsolutePath
   )
 
 def linkerOutputDirectory(
