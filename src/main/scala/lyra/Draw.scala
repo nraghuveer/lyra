@@ -71,7 +71,7 @@ trait StaticShape:
     gfx
   }
 
-trait Shape extends StaticShape:
+sealed trait Shape extends StaticShape:
   val id: String
   val user: String
   def overlap(r: Rectangle): Boolean
@@ -109,7 +109,7 @@ case class SelectionRectShape(id: String, user: String, val rect: Rectangle, sty
   }
 }
 
-trait ModifiableShape extends Shape {
+sealed trait ModifiableShape extends Shape {
   def modify(p: Point): ModifiableShape
 }
 
