@@ -15,13 +15,14 @@ case class StylesConfig(
 )
 
 class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
-  var styles = StylesConfig(
+  var styles: StylesConfig = StylesConfig(
     color = "white",
     lineWidth = 4.0,
     selectionColor = "blue",
     selectionPointColor = "red",
     opacity = 1.0
   )
+  val user: String = "raghuveer1"
 
   private var data: List[Shape] = initialData
   private var strokeMode = new StrokeCreateMode(this)

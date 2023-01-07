@@ -23,7 +23,7 @@ case class Rectangle(x: Double, y: Double, w: Double, h: Double) {
   private def bottomRight: Point = Point(x + w, y + h)
   private def bottomLeft: Point = Point(x, y + h)
 
-  def asPoints = List(topLeft, topRight, bottomRight, bottomLeft)
+  def asPoints: List[Point] = List(topLeft, topRight, bottomRight, bottomLeft)
 
   def contains(p: Point): Boolean = {
     val horizontal = p.x >= x && p.x <= x + w
@@ -68,15 +68,17 @@ trait StaticShape:
   }
 
 trait Shape extends StaticShape:
+  val id: String
+  val user: String
   def overlap(r: Rectangle): Boolean
   def move(d: Delta): Shape
   def highlights: List[Point]
 
-case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
+case class SelectionRectShape(id: String, user: String, val rect: Rectangle, styles: StylesConfig)
     extends Shape {
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
-    SelectionRectShape(rect, styles)
+    SelectionRectShape(id, user, rect, styles)
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionColor
     gfx.globalAlpha = styles.opacity
@@ -91,7 +93,7 @@ case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
     case Delta(dx, dy) =>
       rect match {
         case Rectangle(x, y, w, h) =>
-          SelectionRectShape(Rectangle(x + dx, y + dy, w, h), styles)
+          SelectionRectShape(id, user, Rectangle(x + dx, y + dy, w, h), styles)
       }
   }
 
@@ -108,12 +110,13 @@ trait ModifiableShape extends Shape {
 }
 
 case class StrokeShape(
+    id: String, user: String,
     private val contents: List[Point],
     val styles: StylesConfig
 ) extends ModifiableShape {
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
-    StrokeShape(contents, newStyles)
+    StrokeShape(id, user, contents, newStyles)
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.color
     gfx.lineWidth = styles.lineWidth
@@ -143,25 +146,20 @@ case class StrokeShape(
 
   def move(d: Delta): StrokeShape = {
     // move each point with delta
-    StrokeShape(contents.map(p => p.move(d)), styles)
+    StrokeShape(id, user, contents.map(p => p.move(d)), styles)
   }
 
   def modify(newPoint: Point): StrokeShape = {
-    StrokeShape(this.contents :+ newPoint, styles)
+    StrokeShape(id, user, this.contents :+ newPoint, styles)
   }
 }
 
-case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
+case class EndpointsHighlight(id: String, user: String, contents: List[Point], styles: StylesConfig)
     extends Shape {
   private val radius = 4.0
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
-    EndpointsHightlight(contents, newStyles)
-  private def squareInsideCircle(origin: Point, radius: Double): Rectangle = {
-    val sideLength = Math.sqrt(2) * radius
-    val topLeft = Point(origin.x - sideLength / 2, origin.y - sideLength / 2)
-    Rectangle(topLeft.x, topLeft.y, sideLength, sideLength)
-  }
+    EndpointsHighlight(id, user, contents, newStyles)
 
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionPointColor
@@ -181,7 +179,7 @@ case class EndpointsHightlight(contents: List[Point], styles: StylesConfig)
   }
 
   override def move(d: Delta): Shape = {
-    EndpointsHightlight(contents.map(p => p.move(d)), styles)
+    EndpointsHighlight(id, user, contents.map(p => p.move(d)), styles)
   }
 
   override def overlap(r: Rectangle): Boolean = contents.forall(r.contains)

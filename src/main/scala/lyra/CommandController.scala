@@ -1,6 +1,7 @@
 package lyra
 import org.scalajs.dom
-import scala.collection.mutable.Stack
+
+import scala.collection.mutable
 
 trait CommandController:
   def log(c: ShapeCommand): Unit
@@ -10,8 +11,8 @@ trait CommandController:
 
 class UndoCommandController extends CommandController {
   private var changes: List[ShapeCommand] = List[ShapeCommand]()
-  private val undoStack: Stack[ShapeCommand] = Stack()
-  private val redoStack: Stack[UndoCommand] = Stack()
+  private val undoStack: mutable.Stack[ShapeCommand] = mutable.Stack()
+  private val redoStack: mutable.Stack[UndoCommand] = mutable.Stack()
 
   override def run(setData: DataSetter): Unit = {
     for (cmd <- changes) {
