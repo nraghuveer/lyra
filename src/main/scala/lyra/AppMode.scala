@@ -150,7 +150,7 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode)
   override def editees: List[StaticShape] = {
     dragDelta match {
       case Some(delta) =>
-        (selectionMode.selectedShapes ++ selectionMode.highlightShapes)
+        (selectionMode.selectedShapes)
           .map(shape => shape.move(delta))
           .map(shape => shape.patchStyles(shape.styles.copy(opacity = opacity)))
       case None => List()

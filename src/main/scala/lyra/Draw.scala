@@ -1,6 +1,7 @@
 package lyra
 
 import org.scalajs.dom
+import scala.scalajs.js
 
 import java.util.Optional
 import org.scalajs.dom.HTMLCanvasElement
@@ -80,6 +81,7 @@ case class SelectionRectShape(val rect: Rectangle, styles: StylesConfig)
     gfx.strokeStyle = styles.selectionColor
     gfx.globalAlpha = styles.opacity
     gfx.lineWidth = styles.lineWidth
+    // gfx.setLineDash(js.Array(5.0, 15.0))
   }
 
   override def highlights: List[Point] = rect.asPoints
