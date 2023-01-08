@@ -29,6 +29,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   val user: String = "raghuveer1"
 
   private var data: List[Shape] = initialData
+  private var shadowData: List[Shape] = initialData
   private var mode: AppMode = new StrokeCreateMode(this)
   val commandController = new UndoRedoCommandController()
 

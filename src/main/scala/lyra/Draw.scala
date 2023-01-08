@@ -113,11 +113,21 @@ sealed trait ModifiableShape extends Shape {
   def modify(p: Point): ModifiableShape
 }
 
+sealed trait DiffableShape[T <: ModifiableShape] extends Shape {
+  def diff(newShape: T): Unit
+}
+
 case class StrokeShape(
     id: String, user: String,
     contents: List[Point],
     styles: StylesConfig
-) extends ModifiableShape {
+) extends ModifiableShape, DiffableShape[StrokeShape] {
+
+  override def diff(newShape: StrokeShape): Unit = {
+    // this shape should either be moved, removed(not yet possible), change of style(not yet possible)
+    // so just check for move
+    println((contents zip newShape.contents).map((p1, p2) => Delta.from(p1, p2)))
+  }
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
     StrokeShape(id, user, contents, newStyles)
