@@ -90,7 +90,7 @@ sealed trait Shape[T <: Shape[T]] extends StaticShape[T] { Self: T =>
 case class SelectionRectShape(id: String, user: String, rect: Rectangle, styles: StylesConfig)
     extends Shape[SelectionRectShape] {
 
-  override def patchStyles(newStyles: StylesConfig): Shape[SelectionRectShape] =
+  override def patchStyles(newStyles: StylesConfig): SelectionRectShape =
     SelectionRectShape(id, user, rect, styles)
 
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
@@ -103,7 +103,8 @@ case class SelectionRectShape(id: String, user: String, rect: Rectangle, styles:
   override def highlights: List[Point] = rect.asPoints
   override def overlap(r: Rectangle): Boolean =
     rect.asPoints.forall(rect.contains)
-  override def move(d: Delta): Shape[SelectionRectShape] = d match {
+
+  override def move(d: Delta): SelectionRectShape = d match {
     case Delta(dx, dy) =>
       rect match {
         case Rectangle(x, y, w, h) =>
@@ -143,7 +144,7 @@ case class StrokeShape(
     contents == newShape
   }
 
-  override def patchStyles(newStyles: StylesConfig): ModifiableShape[StrokeShape] with DiffableShape[StrokeShape] =
+  override def patchStyles(newStyles: StylesConfig): StrokeShape =
     StrokeShape(id, user, contents, newStyles)
 
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
@@ -187,7 +188,7 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
     extends Shape[EndpointsHighlight] {
   private val radius = 4.0
 
-  override def patchStyles(newStyles: StylesConfig): Shape[EndpointsHighlight] =
+  override def patchStyles(newStyles: StylesConfig): EndpointsHighlight =
     EndpointsHighlight(id, user, contents, newStyles)
 
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
@@ -207,7 +208,7 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
     }
   }
 
-  override def move(d: Delta): Shape[EndpointsHighlight] = {
+  override def move(d: Delta): EndpointsHighlight = {
     EndpointsHighlight(id, user, contents.map(p => p.move(d)), styles)
   }
 
