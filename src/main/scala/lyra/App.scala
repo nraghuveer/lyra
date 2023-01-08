@@ -18,7 +18,15 @@ case class StylesConfig(
     opacity: Double
 )
 
-class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
+
+type DataSetter[T <: StaticShape[T]] = (List[T] => List[T]) => Unit
+trait TApp[S <: StaticShape[S]] {
+  val dataSetter: DataSetter[S]
+}
+
+
+class App[S <: StaticShape[S]](canvas: dom.HTMLCanvasElement, initialData: List[S])
+  extends TApp[S]{
   var styles: StylesConfig = StylesConfig(
     color = "white",
     lineWidth = 4.0,
@@ -28,8 +36,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   )
   val user: String = "raghuveer1"
 
-  private var data: List[Shape] = initialData
-  private var shadowData: List[Shape] = initialData
+  private var data: List[S] = initialData
+  private var shadowData: List[S] = initialData
   private var mode: AppMode = new StrokeCreateMode(this)
   val commandController = new UndoRedoCommandController()
 
@@ -142,7 +150,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     clearCanvas(canvas)
     data = List()
 
-    commandController.run(this.dataSetter)
+//    commandController.run(this.dataSetter)
 //    val x: List[DiffableShape[_]] = data.filter(p => p match {
 //      case _: DiffableShape[_] => true
 //      case _ => false
@@ -159,7 +167,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     }
   }
 
-  private def dataSetter(changeFn: List[Shape] => List[Shape]): Unit = {
+  private def dataSetter(changeFn: List[S] => List[S]): Unit = {
     data = changeFn(data)
   }
 
@@ -170,7 +178,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
     Point(x, y)
   }
 
-  def shapes: List[Shape] = data
+  def shapes: List[S] = data
 }
 
 implicit val stylesConfigDecoder: Decoder[StylesConfig] = deriveDecoder

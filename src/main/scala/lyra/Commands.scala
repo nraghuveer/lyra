@@ -4,7 +4,6 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
 
-type DataSetter[T] = (List[T] => List[T]) => Unit
 
 // shapes commands should only take something related to shapes!!!
 sealed trait ShapeCommand[T <: Shape[T]]:
