@@ -67,6 +67,13 @@ case class RedoCommand(command: ShapeCommand) extends ShapeCommand {
   }
 }
 
+// diffcommand shuld take a diffableshape, because it doesnt make sense to have diffcommand for non-diffablehsapes
+// site variance
+trait DiffCommand[T <: DiffableShape[_ <: DiffableShape[_]]](selfShape: T) extends ShapeCommand:
+  def checkConstraints(other: T): Boolean;
+
+
+
 implicit val createShapeCommandDecoder: Decoder[CreateShapeCommand] = deriveDecoder[CreateShapeCommand]
 implicit val createShapeCommandEncoder: Encoder[CreateShapeCommand] = deriveEncoder[CreateShapeCommand]
 implicit val shapeCommandDecoder: Decoder[ShapeCommand] = deriveDecoder
