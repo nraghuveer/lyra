@@ -1,7 +1,7 @@
 package lyra
 
 import org.scalajs.dom
-
+import shapeless._
 import java.util.Optional
 import org.scalajs.dom.HTMLSelectElement
 import org.scalajs.dom.HTMLButtonElement
@@ -141,8 +141,15 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[Shape]) {
   private def paint(): Unit = {
     clearCanvas(canvas)
     data = List()
-    commandController.run(this.dataSetter)
 
+    commandController.run(this.dataSetter)
+//    val x: List[DiffableShape[_]] = data.filter(p => p match {
+//      case _: DiffableShape[_] => true
+//      case _ => false
+//    }).asInstanceOf[List[DiffableShape[_]]]
+//    println(x)
+    val x: List[DiffableShape[_]] = data.collect { case d: DiffableShape[_] => d}
+    println(x)
     for (shape <- data) {
       shape.draw(canvas)
     }

@@ -75,3 +75,5 @@ implicit val undoCommandDecoder: Decoder[UndoCommand] = deriveDecoder
 implicit val undoCommandEncoder: Encoder[UndoCommand] = deriveEncoder
 implicit val redoCommandDecoder: Decoder[RedoCommand] = deriveDecoder
 implicit val redoCommandEncoder: Encoder[RedoCommand] = deriveEncoder
+//implicit val diffCommandDecoder: Decoder[DiffCommand[T <: DiffableShape[T]]] = deriveDecoder[DiffCommand[T <: DiffableShape[T]]]
+//implicit val diffCommandEncoder: Decoder[DiffCommand[T <: DiffableShape[T]]] = deriveEncoder

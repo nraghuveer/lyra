@@ -115,6 +115,7 @@ sealed trait ModifiableShape extends Shape {
 
 sealed trait DiffableShape[T <: DiffableShape[T]] extends ModifiableShape { self: T =>
   def diff(newShape: T): Unit
+  def isInSameContext(newShape: T): Boolean;
 }
 
 case class StrokeShape(
@@ -126,6 +127,10 @@ case class StrokeShape(
   override def diff(newShape: StrokeShape): Unit = {
     // this shape should either be moved, removed(not yet possible), change of style(not yet possible)
     // so just check for move
+  }
+
+  override def isInSameContext(newShape: StrokeShape): Boolean = {
+    contents == newShape
   }
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =

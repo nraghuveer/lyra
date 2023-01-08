@@ -26,6 +26,7 @@ lazy val lyra = project
       "io.circe" %%% "circe-core" % "0.14.3",
       "io.circe" %%% "circe-parser" % "0.14.3",
       "io.circe" %%% "circe-generic" % "0.14.3",
+      ("com.chuusai" %%% "shapeless" % "2.3.9").cross(CrossVersion.for3Use2_13)
     ) ++ Seq(("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)),
     publicDev := linkerOutputDirectory((Compile / fastLinkJS).value)
       .getAbsolutePath,
