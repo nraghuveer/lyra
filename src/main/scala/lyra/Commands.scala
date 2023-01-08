@@ -4,26 +4,27 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
 
-type DataSetter = (List[Shape] => List[Shape]) => Unit
+type DataSetter[T] = (List[T] => List[T]) => Unit
 
-sealed trait ShapeCommand:
-  def undo(setData: DataSetter): Unit
-  def run(setData: DataSetter): Unit
+// shapes commands should only take something related to shapes!!!
+sealed trait ShapeCommand[T <: Shape[_]]:
+  def undo(setData: DataSetter[T]): Unit
+  def run(setData: DataSetter[T]): Unit
 
-case class CreateShapeCommand(shape: Shape) extends ShapeCommand {
-  def run(setData: DataSetter): Unit = {
-    setData((old: List[Shape]) => {
-      old ++ List[Shape](shape)
+case class CreateShapeCommand[T <: Shape[_]](shape: T) extends ShapeCommand[T] {
+  def run(setData: DataSetter[T]): Unit = {
+    setData((old: List[T]) => {
+      old ++ List[T](shape)
     })
   }
-  def undo(setData: DataSetter): Unit = {
+  def undo(setData: DataSetter[T]): Unit = {
     setData(old => old.filter(s => s != shape))
   }
 }
 
-case class MoveShapesCommand(shapes: List[Shape], delta: Delta)
-    extends ShapeCommand {
-  override def run(setData: DataSetter): Unit = {
+case class MoveShapesCommand[T <: Shape[_]](shapes: List[T], delta: Delta)
+    extends ShapeCommand[T] {
+  override def run(setData: DataSetter[T]): Unit = {
     // move the shapes if it is part of the given shapes with given delta
     setData(old =>
       old.map(s => {
@@ -34,7 +35,7 @@ case class MoveShapesCommand(shapes: List[Shape], delta: Delta)
     )
   }
 
-  override def undo(setData: DataSetter): Unit = {
+  override def undo(setData: DataSetter[T]): Unit = {
     setData(old => {
       old.map(s => {
         // before checking if the shape exists in the list
@@ -47,40 +48,40 @@ case class MoveShapesCommand(shapes: List[Shape], delta: Delta)
   }
 }
 
-case class UndoCommand(command: ShapeCommand) extends ShapeCommand {
-  override def run(setData: DataSetter): Unit = {
+case class UndoCommand[T <: Shape[_]](command: ShapeCommand[T]) extends ShapeCommand[T] {
+  override def run(setData: DataSetter[T]): Unit = {
     command.undo(setData)
   }
 
-  override def undo(setData: DataSetter): Unit = {
+  override def undo(setData: DataSetter[T]): Unit = {
     command.run(setData)
   }
 }
 
-case class RedoCommand(command: ShapeCommand) extends ShapeCommand {
-  override def run(setData: DataSetter): Unit = {
+case class RedoCommand[T <: Shape[_]](command: ShapeCommand[T]) extends ShapeCommand[T] {
+  override def run(setData: DataSetter[T]): Unit = {
     command.undo(setData)
   }
 
-  override def undo(setData: DataSetter): Unit = {
+  override def undo(setData: DataSetter[T]): Unit = {
     command.run(setData)
   }
 }
 
 // diffcommand shuld take a diffableshape, because it doesnt make sense to have diffcommand for non-diffablehsapes
 // site variance
-trait DiffCommand[T <: DiffableShape[_ <: DiffableShape[_]]](selfShape: T) extends ShapeCommand:
-  def checkConstraints(other: T): Boolean;
+//trait DiffCommand[T <: DiffableShape[_ <: DiffableShape[_]]](selfShape: T) extends ShapeCommand:
+//  def checkConstraints(other: T): Boolean;
 
 
 
-implicit val createShapeCommandDecoder: Decoder[CreateShapeCommand] = deriveDecoder[CreateShapeCommand]
-implicit val createShapeCommandEncoder: Encoder[CreateShapeCommand] = deriveEncoder[CreateShapeCommand]
-implicit val shapeCommandDecoder: Decoder[ShapeCommand] = deriveDecoder
-implicit val shapeCommandEncoder: Encoder[ShapeCommand] = deriveEncoder
-implicit val undoCommandDecoder: Decoder[UndoCommand] = deriveDecoder
-implicit val undoCommandEncoder: Encoder[UndoCommand] = deriveEncoder
-implicit val redoCommandDecoder: Decoder[RedoCommand] = deriveDecoder
-implicit val redoCommandEncoder: Encoder[RedoCommand] = deriveEncoder
+implicit val createShapeCommandDecoder: Decoder[CreateShapeCommand[_ <: StaticShape[_]]] = deriveDecoder
+implicit val createShapeCommandEncoder: Encoder[CreateShapeCommand[_ <: StaticShape[_]]] = deriveEncoder
+implicit val shapeCommandDecoder: Decoder[ShapeCommand[_ <: Shape[_]]] = deriveDecoder
+implicit val shapeCommandEncoder: Encoder[ShapeCommand[_ <: Shape[_]]] = deriveEncoder
+implicit val undoCommandDecoder: Decoder[UndoCommand[_ <: Shape[_]]] = deriveDecoder
+implicit val undoCommandEncoder: Encoder[UndoCommand[_ <: Shape[_]]] = deriveEncoder
+implicit val redoCommandDecoder: Decoder[RedoCommand[_ <: Shape[_]]] = deriveDecoder
+implicit val redoCommandEncoder: Encoder[RedoCommand[_ <: Shape[_]]] = deriveEncoder
 //implicit val diffCommandDecoder: Decoder[DiffCommand[T <: DiffableShape[T]]] = deriveDecoder[DiffCommand[T <: DiffableShape[T]]]
 //implicit val diffCommandEncoder: Decoder[DiffCommand[T <: DiffableShape[T]]] = deriveEncoder
