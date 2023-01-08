@@ -25,7 +25,7 @@ trait TApp[S <: StaticShape[S]] {
 }
 
 
-class App[S <: StaticShape[S]](canvas: dom.HTMLCanvasElement, initialData: List[S])
+class App[S <: Shape[S]](canvas: dom.HTMLCanvasElement, initialData: List[S])
   extends TApp[S]{
   var styles: StylesConfig = StylesConfig(
     color = "white",
@@ -39,7 +39,7 @@ class App[S <: StaticShape[S]](canvas: dom.HTMLCanvasElement, initialData: List[
   private var data: List[S] = initialData
   private var shadowData: List[S] = initialData
   private var mode: AppMode = new StrokeCreateMode(this)
-  val commandController = new UndoRedoCommandController()
+  val commandController = new UndoRedoCommandController[S]()
 
   switchToEditMode()
   attachKeyBindings()
@@ -150,7 +150,7 @@ class App[S <: StaticShape[S]](canvas: dom.HTMLCanvasElement, initialData: List[
     clearCanvas(canvas)
     data = List()
 
-//    commandController.run(this.dataSetter)
+    commandController.run(this.dataSetter)
 //    val x: List[DiffableShape[_]] = data.filter(p => p match {
 //      case _: DiffableShape[_] => true
 //      case _ => false
@@ -167,9 +167,13 @@ class App[S <: StaticShape[S]](canvas: dom.HTMLCanvasElement, initialData: List[
     }
   }
 
-  private def dataSetter(changeFn: List[S] => List[S]): Unit = {
+  // I am not sure why this thing is not working if defined as method
+  // anyway, i keep this since it is working and valid syntax
+  val dataSetter: DataSetter[S] = (changeFn: List[S] => List[S]) => {
     data = changeFn(data)
   }
+  
+  
 
   def clickToPoint(e: dom.MouseEvent): Point = {
     val boundingRec = canvas.getBoundingClientRect()
