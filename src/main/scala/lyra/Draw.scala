@@ -78,7 +78,7 @@ sealed trait Shape extends StaticShape:
   def move(d: Delta): Shape
   def highlights: List[Point]
 
-case class SelectionRectShape(id: String, user: String, val rect: Rectangle, styles: StylesConfig)
+case class SelectionRectShape(id: String, user: String, rect: Rectangle, styles: StylesConfig)
     extends Shape {
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
@@ -113,7 +113,7 @@ sealed trait ModifiableShape extends Shape {
   def modify(p: Point): ModifiableShape
 }
 
-sealed trait DiffableShape[T <: ModifiableShape] extends Shape {
+sealed trait DiffableShape[T <: DiffableShape[T]] extends ModifiableShape { self: T =>
   def diff(newShape: T): Unit
 }
 
@@ -126,7 +126,6 @@ case class StrokeShape(
   override def diff(newShape: StrokeShape): Unit = {
     // this shape should either be moved, removed(not yet possible), change of style(not yet possible)
     // so just check for move
-    println((contents zip newShape.contents).map((p1, p2) => Delta.from(p1, p2)))
   }
 
   override def patchStyles(newStyles: StylesConfig): StaticShape =
