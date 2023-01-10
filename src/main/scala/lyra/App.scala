@@ -44,6 +44,10 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
     mode = new StrokeCreateMode(this)
     attachMouseEvtHandlers(mode)
   }
+  private def switchToDeleteMode(): Unit = {
+    mode = new DeleteAppMode(this)
+    attachMouseEvtHandlers(mode)
+  }
   private def undoRedoBindings(): Unit = {
     dom.document
       .querySelector("#btnUndo")
@@ -85,6 +89,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
       value match {
         case "selection" => switchToSelectionMode()
         case "edit"      => switchToEditMode()
+        case "delete" => switchToDeleteMode()
       }
     }
   }
@@ -101,6 +106,8 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
         switchToSelectionMode()
       } else if (e.keyCode == 69 && e.ctrlKey) {
         switchToEditMode()
+      } else if (e.keyCode == 68 && e.ctrlKey) {
+        switchToDeleteMode()
       }
     })
   }

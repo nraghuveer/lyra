@@ -75,6 +75,8 @@ trait StaticShape:
   def highlights: List[Point]
   def overlap(r: Rectangle): Boolean
 
+  def contains(p: Point): Boolean
+
 sealed trait Shape[+T <: Shape[T]] extends StaticShape:
   def patchStyles(newStyles: StylesConfig): Shape[T]
   def move(d: Delta): Shape[T]
@@ -104,14 +106,17 @@ case class StrokeShape(
     val interval = 10
     // select points with a interval, so that highlight points are selected
     contents.zipWithIndex
-      .filter((p, i) => i % interval == 0 || i == contents.length - 1)
-      .map((p, i) => p)
+      .filter((_, i) => i % interval == 0 || i == contents.length - 1)
+      .map((p, _) => p)
   }
 
   def overlap(r: Rectangle): Boolean = {
     // check if each point in the contents is contained in the rectangle
     contents.forall(r.contains)
   }
+
+  override def contains(p: Point): Boolean = contents.contains(p)
+
   def draw(canvas: dom.HTMLCanvasElement): Unit = {
     val gfx = getGFX(canvas)
     gfx.beginPath()
@@ -161,12 +166,17 @@ case class SelectionRectShape(id: String, user: String, val rect: Rectangle, sty
     Rectangle.draw(gfx, rect)
     gfx.stroke()
   }
+
+  override def contains(p: Point): Boolean = rect.contains(p)
+
 }
 case class EndpointsHighlight(id: String, user: String, contents: List[Point], styles: StylesConfig)
     extends Shape[EndpointsHighlight] {
 
   override def patchStyles(newStyles: StylesConfig): EndpointsHighlight =
       EndpointsHighlight(id, user, contents, newStyles)
+
+  override def contains(p: Point): Boolean = contents.contains(p)
 
   override def move(d: Delta): EndpointsHighlight = {
     EndpointsHighlight(id, user, contents.map((p) => p.move(d)), styles)
