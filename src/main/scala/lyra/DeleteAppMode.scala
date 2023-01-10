@@ -7,7 +7,8 @@ class DeleteAppMode(app: App, setData: DataSetter) extends AppMode {
   private var pathPoints: List[Point] = List()
 
   def selectedShapes: List[Shape[_]] = {
-    app.shapes.filter(shape => pathPoints.exists(p => shape.contains(p)))
+//    app.shapes.filter(shape => pathPoints.exists(p => shape.contains(p)))
+    List()
   }
 
   override def onMouseUp(e:  MouseEvent): Unit = {

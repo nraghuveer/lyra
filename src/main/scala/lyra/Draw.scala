@@ -72,7 +72,6 @@ trait StaticShape:
   def highlights: List[Point]
   def overlap(r: Rectangle): Boolean
 
-  def contains(p: Point): Boolean
 
 sealed trait Shape[+T <: Shape[T]] extends StaticShape:
   def patchStyles(newStyles: StylesConfig): Shape[T]
@@ -111,8 +110,6 @@ case class StrokeShape(
     // check if each point in the contents is contained in the rectangle
     contents.forall(r.contains)
   }
-
-  override def contains(p: Point): Boolean = contents.contains(p)
 
   def draw(canvas: HTMLCanvasElement): Unit = {
     val gfx = getGFX(canvas)
@@ -164,7 +161,6 @@ case class SelectionRectShape(id: String, user: String, val rect: Rectangle, sty
     gfx.stroke()
   }
 
-  override def contains(p: Point): Boolean = rect.contains(p)
 
 }
 case class EndpointsHighlight(id: String, user: String, contents: List[Point], styles: StylesConfig)
@@ -173,7 +169,6 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
   override def patchStyles(newStyles: StylesConfig): EndpointsHighlight =
       EndpointsHighlight(id, user, contents, newStyles)
 
-  override def contains(p: Point): Boolean = contents.contains(p)
 
   override def move(d: Delta): EndpointsHighlight = {
     EndpointsHighlight(id, user, contents.map((p) => p.move(d)), styles)
@@ -199,6 +194,23 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
   override def overlap(r: Rectangle): Boolean = contents.forall(r.contains)
 
   override def highlights: List[Point] = highlights
+}
+
+case class TBDeletedShape(ogShape: Shape[_]) extends StaticShape {
+  val shape: Shape[_] = ogShape.patchStyles(shape.styles.copy(opacity=0.3))
+  val id: String = shape.id
+  val user: String = shape.user
+  val styles: StylesConfig = shape.styles
+  
+  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {}
+
+  override def highlights: List[Point] = shape.highlights
+
+  override def overlap(r: Rectangle): Boolean = shape.overlap(r)
+
+  override def draw(canvas: HTMLCanvasElement): Unit = {
+    shape.draw(canvas)
+  }
 }
 
   implicit val pointDecoder: Decoder[Point] = deriveDecoder
