@@ -60,9 +60,12 @@ object Delta {
   def from(p1: Point, p2: Point): Delta = new Delta(p2.x - p1.x, p2.y - p1.y)
 }
 
-trait StaticShape:
+
+trait StaticShape[T <: StaticShape[T]]:
   val styles: StylesConfig
-  def patchStyles(newStyles: StylesConfig): StaticShape
+  val id: String
+  val user: String
+  def patchStyles(newStyles: StylesConfig): T
   def draw(canvas: dom.HTMLCanvasElement): Unit
   def applyStyles(gfx: dom.CanvasRenderingContext2D): Unit
   def getGFX(canvas: dom.HTMLCanvasElement): dom.CanvasRenderingContext2D = {
@@ -70,18 +73,16 @@ trait StaticShape:
     applyStyles(gfx)
     gfx
   }
-
-sealed trait Shape extends StaticShape:
-  val id: String
-  val user: String
-  def overlap(r: Rectangle): Boolean
-  def move(d: Delta): Shape
   def highlights: List[Point]
+  def overlap(r: Rectangle): Boolean
+
+sealed trait Shape[T <: Shape[T]] extends StaticShape[T]:
+  def move(d: Delta): T
 
 case class SelectionRectShape(id: String, user: String, val rect: Rectangle, styles: StylesConfig)
-    extends Shape {
+    extends Shape[SelectionRectShape] {
 
-  override def patchStyles(newStyles: StylesConfig): StaticShape =
+  override def patchStyles(newStyles: StylesConfig): SelectionRectShape =
     SelectionRectShape(id, user, rect, styles)
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionColor
@@ -93,7 +94,8 @@ case class SelectionRectShape(id: String, user: String, val rect: Rectangle, sty
   override def highlights: List[Point] = rect.asPoints
   override def overlap(r: Rectangle): Boolean =
     rect.asPoints.forall(rect.contains)
-  override def move(d: Delta): Shape = d match {
+
+  override def move(d: Delta): SelectionRectShape = d match {
     case Delta(dx, dy) =>
       rect match {
         case Rectangle(x, y, w, h) =>
@@ -109,18 +111,19 @@ case class SelectionRectShape(id: String, user: String, val rect: Rectangle, sty
   }
 }
 
-sealed trait ModifiableShape extends Shape {
-  def modify(p: Point): ModifiableShape
+sealed trait ModifiableShape[T <: ModifiableShape[T]] extends Shape[T] {
+  def modify(p: Point): T
 }
 
 case class StrokeShape(
     id: String, user: String,
     contents: List[Point],
     styles: StylesConfig
-) extends ModifiableShape {
+) extends ModifiableShape[StrokeShape] {
 
-  override def patchStyles(newStyles: StylesConfig): StaticShape =
+  override def patchStyles(newStyles: StylesConfig): StrokeShape =
     StrokeShape(id, user, contents, newStyles)
+    
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.color
     gfx.lineWidth = styles.lineWidth
@@ -159,12 +162,15 @@ case class StrokeShape(
 }
 
 case class EndpointsHighlight(id: String, user: String, contents: List[Point], styles: StylesConfig)
-    extends Shape {
-  private val radius = 4.0
+    extends Shape[EndpointsHighlight] {
 
-  override def patchStyles(newStyles: StylesConfig): StaticShape =
-    EndpointsHighlight(id, user, contents, newStyles)
+  override def patchStyles(newStyles: StylesConfig): EndpointsHighlight =
+      EndpointsHighlight(id, user, contents, newStyles)
 
+  override def move(d: Delta): EndpointsHighlight = {
+    EndpointsHighlight(id, user, contents.map((p) => p.move(d)), styles)
+  }
+    
   override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
     gfx.strokeStyle = styles.selectionPointColor
     gfx.fillStyle = styles.selectionColor
@@ -180,10 +186,6 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
       gfx.fill()
       gfx.stroke()
     }
-  }
-
-  override def move(d: Delta): Shape = {
-    EndpointsHighlight(id, user, contents.map(p => p.move(d)), styles)
   }
 
   override def overlap(r: Rectangle): Boolean = contents.forall(r.contains)
@@ -209,7 +211,7 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
   implicit val endpointsHighlightDecoder: Decoder[EndpointsHighlight] = deriveDecoder
   implicit val endpointsHighlightEncoder: Encoder[EndpointsHighlight] = deriveEncoder
 
-  implicit val shapeDecoder: Decoder[Shape] = deriveDecoder
-  implicit val shapeEncoder: Encoder[Shape] = deriveEncoder
-  implicit val mshapeDecoder: Decoder[ModifiableShape] = deriveDecoder
-  implicit val mshapeEncoder: Encoder[ModifiableShape] = deriveEncoder
+  implicit val shapeDecoder: Decoder[Shape[_]] = deriveDecoder
+  implicit val shapeEncoder: Encoder[Shape[_]] = deriveEncoder
+  implicit val mshapeDecoder: Decoder[ModifiableShape[_]] = deriveDecoder
+  implicit val mshapeEncoder: Encoder[ModifiableShape[_]] = deriveEncoder

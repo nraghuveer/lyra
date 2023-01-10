@@ -3,31 +3,31 @@ import org.scalajs.dom
 import scala.collection.mutable
 import io.circe.syntax._
 
-trait CommandController:
-  def log(c: ShapeCommand): Unit
+trait CommandController[T <: Shape[T]]:
+  def log(c: ShapeCommand[T]): Unit
   def undo(): Boolean
   def redo(): Boolean
-  def run(setData: DataSetter): Unit
+  def run(setData: DataSetter[T]): Unit
 
-class UndoRedoCommandController(private var changes: List[ShapeCommand] = List()) extends CommandController {
-  private val undoStack: mutable.Stack[ShapeCommand] = mutable.Stack()
-  private val redoStack: mutable.Stack[UndoCommand] = mutable.Stack()
+class UndoRedoCommandController[T <: Shape[T]](private var changes: List[ShapeCommand[T]] = List()) extends CommandController[T] {
+  private val undoStack: mutable.Stack[ShapeCommand[T]] = mutable.Stack()
+  private val redoStack: mutable.Stack[UndoCommand[T]] = mutable.Stack()
 
-  override def run(setData: DataSetter): Unit = {
+  override def run(setData: DataSetter[T]): Unit = {
     for (cmd <- changes) {
       cmd.run(setData)
     }
   }
-  override def log(c: ShapeCommand): Unit = {
+  override def log(c: ShapeCommand[T]): Unit = {
     changes = changes ++ List(c)
     // add to undo stack only if it is not undo command, else we endup in loop
     // where only last shape will be undoed
     c match {
-      case uc: UndoCommand => redoStack.push(uc)
-      case rc: RedoCommand => undoStack.push(rc)
+      case uc: UndoCommand[T] => redoStack.push(uc)
+      case rc: RedoCommand[T] => undoStack.push(rc)
       // if there is any other shape otherthan undocommand
       // reset the redostack
-      case _: ShapeCommand =>
+      case _: ShapeCommand[T] =>
         undoStack.push(c)
         redoStack.popAll()
     }
