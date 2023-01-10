@@ -23,7 +23,10 @@ case class CreateShapeCommand(shape: Shape[_]) extends ShapeCommand {
 
 case class DeleteShapeCommand(shape: Shape[_]) extends ShapeCommand {
   override def run(setData: DataSetter): Unit = {
-   setData(old => old.filter(s => s != shape)) 
+    // TODO: check why the generic s != shape not working herew
+    setData(old => {
+      old.filter(s => s.id != shape.id)
+    })
   }
 
   override def undo(setData: DataSetter): Unit = {
