@@ -8,17 +8,17 @@ trait AppMode[T <: StaticShape[T]]:
   def onMouseDown(e: dom.MouseEvent): Unit
   def onMouseUp(e: dom.MouseEvent): Unit
   def onMouseMove(e: dom.MouseEvent): Unit
-  def editees: List[T]
+  def editees: List[StaticShape[T]]
   def clearState(): Unit
   def getUniqueId: String = java.util.UUID.randomUUID().toString
 
-trait SelectionMode[T <: StaticShape[T]] extends AppMode[T]:
+trait SelectionMode[T <: Shape[T], S <: T , H <: T] extends AppMode[T]:
   def isInSelection(point: Option[Point]): Boolean
-  def selectedShapes: List[T]
-  def highlightShapes: List[T]
+  def selectedShapes: List[S]
+  def highlightShapes: List[H]
 
 // Stoke and Selection
-class RectangleSelectionMode[T <: Shape[T]](app: App) extends SelectionMode[T] {
+class RectangleSelectionMode(app: App) extends SelectionMode[Shape[_], SelectionRectShape, EndpointsHighlight] {
   private var selectionRect: Option[Rectangle] = None
   private var selectionRectStart: Option[Point] = None
   private val dragMode = new RectangleSelectionDragMode(app, this)
@@ -38,7 +38,7 @@ class RectangleSelectionMode[T <: Shape[T]](app: App) extends SelectionMode[T] {
     }
   }
 
-  override def selectedShapes: List[T] = {
+  override def selectedShapes: List[Shape[_]] = {
     // this should have different styles
     // the idea is to highlight the start and endpoints....
     // if bounding rectangle
@@ -55,14 +55,15 @@ class RectangleSelectionMode[T <: Shape[T]](app: App) extends SelectionMode[T] {
         .map(shape => EndpointsHighlight(getUniqueId, shape.user, shape.highlights, app.styles))
   }
 
-  override def editees: List[T] =
+  override def editees: List[Shape[_]] =
     // selection Rectangle ++ shapes bounded in this rectangle
     val rect = selectionRect match {
       case Some(rect) =>
         List(SelectionRectShape(getUniqueId, app.user, rect, app.styles.copy(lineWidth = 2)).asInstanceOf[T])
       case None => List()
     }
-    rect ++ dragMode.editees ++ highlightShapes
+//    rect ++ dragMode.editees ++ highlightShapes
+    rect
 
   def onMouseDown(e: MouseEvent): Unit = {
     val p = app.clickToPoint(e)
@@ -100,9 +101,9 @@ class RectangleSelectionMode[T <: Shape[T]](app: App) extends SelectionMode[T] {
 }
 
 // T is the type of the shapes that the editees return
-class RectangleSelectionDragMode[T <: Shape[T]](app: App, selectionMode: SelectionMode[T])
-    extends AppMode[T] {
-  private var opacity: Double = 0.3
+class RectangleSelectionDragMode(app: App, selectionMode: RectangleSelectionMode)
+    extends AppMode[Shape[_]] {
+  private val opacity: Double = 0.3
   private var start: Option[Point] = None
   private var dragDelta: Option[Delta] = None
 
@@ -142,13 +143,13 @@ class RectangleSelectionDragMode[T <: Shape[T]](app: App, selectionMode: Selecti
 
   }
 
-  override def editees: List[T] = {
+  override def editees: List[_ <: Shape[_]] = {
     dragDelta match {
       case Some(delta) =>
         selectionMode.selectedShapes
           .map(shape => shape.move(delta))
-          .map(shape => shape.patchStyles(shape.styles.copy(opacity = opacity)))
-      case None => List()
+          .map(shape => shape.patchStyles(shape.styles.copy(opacity=opacity)))
+      case None => List()  
     }
   }
 }

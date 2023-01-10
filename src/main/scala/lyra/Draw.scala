@@ -61,11 +61,11 @@ object Delta {
 }
 
 
-trait StaticShape[T <: StaticShape[T]]:
+trait StaticShape[+T <: StaticShape[T]]:
   val styles: StylesConfig
   val id: String
   val user: String
-  def patchStyles(newStyles: StylesConfig): T
+  def patchStyles(newStyles: StylesConfig): StaticShape[T]
   def draw(canvas: dom.HTMLCanvasElement): Unit
   def applyStyles(gfx: dom.CanvasRenderingContext2D): Unit
   def getGFX(canvas: dom.HTMLCanvasElement): dom.CanvasRenderingContext2D = {
@@ -76,42 +76,12 @@ trait StaticShape[T <: StaticShape[T]]:
   def highlights: List[Point]
   def overlap(r: Rectangle): Boolean
 
-sealed trait Shape[T <: Shape[T]] extends StaticShape[T]:
-  def move(d: Delta): T
+sealed trait Shape[+T <: Shape[T]] extends StaticShape[T]:
+  def move(d: Delta): Shape[T]
+  
+  
 
-case class SelectionRectShape(id: String, user: String, val rect: Rectangle, styles: StylesConfig)
-    extends Shape[SelectionRectShape] {
-
-  override def patchStyles(newStyles: StylesConfig): SelectionRectShape =
-    SelectionRectShape(id, user, rect, styles)
-  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
-    gfx.strokeStyle = styles.selectionColor
-    gfx.globalAlpha = styles.opacity
-    gfx.lineWidth = styles.lineWidth
-    // gfx.setLineDash(js.Array(5.0, 15.0))
-  }
-
-  override def highlights: List[Point] = rect.asPoints
-  override def overlap(r: Rectangle): Boolean =
-    rect.asPoints.forall(rect.contains)
-
-  override def move(d: Delta): SelectionRectShape = d match {
-    case Delta(dx, dy) =>
-      rect match {
-        case Rectangle(x, y, w, h) =>
-          SelectionRectShape(id, user, Rectangle(x + dx, y + dy, w, h), styles)
-      }
-  }
-
-  override def draw(canvas: HTMLCanvasElement): Unit = {
-    val gfx = getGFX(canvas)
-    gfx.beginPath()
-    Rectangle.draw(gfx, rect)
-    gfx.stroke()
-  }
-}
-
-sealed trait ModifiableShape[T <: ModifiableShape[T]] extends Shape[T] {
+sealed trait ModifiableShape[+T <: ModifiableShape[T]] extends Shape[T] {
   def modify(p: Point): T
 }
 
@@ -161,6 +131,37 @@ case class StrokeShape(
   }
 }
 
+case class SelectionRectShape(id: String, user: String, val rect: Rectangle, styles: StylesConfig)
+  extends Shape[SelectionRectShape] {
+
+  override def patchStyles(newStyles: StylesConfig): SelectionRectShape =
+    SelectionRectShape(id, user, rect, styles)
+  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {
+    gfx.strokeStyle = styles.selectionColor
+    gfx.globalAlpha = styles.opacity
+    gfx.lineWidth = styles.lineWidth
+    // gfx.setLineDash(js.Array(5.0, 15.0))
+  }
+
+  override def highlights: List[Point] = rect.asPoints
+  override def overlap(r: Rectangle): Boolean =
+    rect.asPoints.forall(rect.contains)
+
+  override def move(d: Delta): SelectionRectShape = d match {
+    case Delta(dx, dy) =>
+      rect match {
+        case Rectangle(x, y, w, h) =>
+          SelectionRectShape(id, user, Rectangle(x + dx, y + dy, w, h), styles)
+      }
+  }
+
+  override def draw(canvas: HTMLCanvasElement): Unit = {
+    val gfx = getGFX(canvas)
+    gfx.beginPath()
+    Rectangle.draw(gfx, rect)
+    gfx.stroke()
+  }
+}
 case class EndpointsHighlight(id: String, user: String, contents: List[Point], styles: StylesConfig)
     extends Shape[EndpointsHighlight] {
 
