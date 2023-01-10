@@ -7,9 +7,9 @@ trait AppMode:
   def onMouseDown(e: dom.MouseEvent): Unit
   def onMouseUp(e: dom.MouseEvent): Unit
   def onMouseMove(e: dom.MouseEvent): Unit
-  def editees: List[StaticShape]
   def clearState(): Unit
   def getUniqueId: String = java.util.UUID.randomUUID().toString
+  def apply(data: DataSetter): Unit
 
 trait SelectionMode[H <: Shape[H]] extends AppMode:
   def isInSelection(point: Option[Point]): Boolean
@@ -54,14 +54,18 @@ class RectangleSelectionMode(app: App) extends SelectionMode[EndpointsHighlight]
         .map(shape => EndpointsHighlight(getUniqueId, shape.user, shape.highlights, app.styles))
   }
 
-  override def editees: List[StaticShape] =
+  def editees: List[Shape[_]] =
     // selection Rectangle ++ shapes bounded in this rectangle
     val rect = selectionRect match {
       case Some(rect) =>
         List(SelectionRectShape(getUniqueId, app.user, rect, app.styles.copy(lineWidth = 2)))
       case None => List()
     }
-    rect ++ dragMode.editees ++ highlightShapes
+    rect ++ highlightShapes
+
+  override def apply(setData: DataSetter): Unit = {
+    setData(old => old ++ editees) 
+  }
 
   def onMouseDown(e: MouseEvent): Unit = {
     val p = app.clickToPoint(e)
@@ -151,7 +155,10 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode[_ <: Sha
     }
   }
 
-  override def editees: List[StaticShape] = {
+  override def apply(setData: DataSetter): Unit = {
+    setData(old => old ++ editees) 
+  }
+  def editees: List[Shape[_]] = {
     selectedShapes.map(s => s.patchStyles(s.styles.copy(opacity=opacity)))
   }
 }
@@ -162,9 +169,13 @@ abstract class CreationMode(app: App) extends AppMode {
 
   private var editee: Option[ModifiableShape[_]] = None
 
-  override def editees: List[StaticShape] = editee match {
+  def editees: List[Shape[_]] = editee match {
     case Some(shape) => List(shape)
     case None        => List()
+  }
+
+  override def apply(setData: DataSetter): Unit = {
+    setData(old => old ++ editees) 
   }
 
   override def onMouseDown(e: MouseEvent): Unit = {

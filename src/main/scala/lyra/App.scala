@@ -45,7 +45,7 @@ class App(val canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
     attachMouseEvtHandlers(mode)
   }
   private def switchToDeleteMode(): Unit = {
-    mode = new DeleteAppMode(this, this.dataSetter)
+    mode = new DeleteAppMode(this)
     attachMouseEvtHandlers(mode)
   }
   private def undoRedoBindings(): Unit = {
@@ -149,14 +149,12 @@ class App(val canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
   private def paint(): Unit = {
     clearCanvas(canvas)
     data = List()
+    // first apply commands
     commandController.run(this.dataSetter)
-
-    for (shape <- data) {
-      shape.draw(canvas)
-    }
-    // draw if there is a editee from the active mode
-    for (shape <- mode.editees) {
-      shape.draw(canvas)
+    // apply mode
+    mode.apply(this.dataSetter)
+    for (s <- data) {
+      s.draw(canvas)
     }
   }
 

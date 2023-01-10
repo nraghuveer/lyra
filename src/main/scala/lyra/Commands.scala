@@ -23,10 +23,11 @@ case class CreateShapeCommand(shape: Shape[_]) extends ShapeCommand {
 
 case class DeleteShapeCommand(shape: Shape[_]) extends ShapeCommand {
   override def run(setData: DataSetter): Unit = {
-    setData(old => old.filter(s => s != shape))
+   setData(old => old.filter(s => s != shape)) 
   }
 
   override def undo(setData: DataSetter): Unit = {
+    // as if this command ever existed
     setData(old => old)
   }
 }

@@ -62,10 +62,15 @@ trait StaticShape:
   val styles: StylesConfig
   val id: String
   val user: String
-  def draw(canvas: HTMLCanvasElement): Unit
+  def draw(canvas: HTMLCanvasElement): Unit = {
+    getGFX(canvas).stroke()
+  }
+  
+  def addPaths(gfx: CanvasRenderingContext2D): Unit
   def applyStyles(gfx: CanvasRenderingContext2D): Unit
   def getGFX(canvas: HTMLCanvasElement): CanvasRenderingContext2D = {
     val gfx = canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
+    addPaths(gfx)
     applyStyles(gfx)
     gfx
   }
@@ -111,13 +116,11 @@ case class StrokeShape(
     contents.forall(r.contains)
   }
 
-  def draw(canvas: HTMLCanvasElement): Unit = {
-    val gfx = getGFX(canvas)
+  override def addPaths(gfx: CanvasRenderingContext2D): Unit = {
     gfx.beginPath()
     for (p <- contents) {
       gfx.lineTo(p.x, p.y)
     }
-    gfx.stroke()
   }
 
   def move(d: Delta): StrokeShape = {
@@ -154,11 +157,9 @@ case class SelectionRectShape(id: String, user: String, val rect: Rectangle, sty
       }
   }
 
-  override def draw(canvas: HTMLCanvasElement): Unit = {
-    val gfx = getGFX(canvas)
+  override def addPaths(gfx: CanvasRenderingContext2D): Unit = {
     gfx.beginPath()
     Rectangle.draw(gfx, rect)
-    gfx.stroke()
   }
 
 
@@ -179,15 +180,13 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
     gfx.fillStyle = styles.selectionColor
   }
 
-  override def draw(canvas: HTMLCanvasElement): Unit = {
-    val gfx = getGFX(canvas)
+  override def addPaths(gfx: CanvasRenderingContext2D): Unit = {
     for (origin <- contents) {
       gfx.beginPath()
       // Rectangle.draw(gfx, squareInsideCircle(origin, 0.2))
       gfx.arc(origin.x, origin.y, 3, 0, 2 * Math.PI)
       gfx.closePath()
       gfx.fill()
-      gfx.stroke()
     }
   }
 
@@ -196,22 +195,6 @@ case class EndpointsHighlight(id: String, user: String, contents: List[Point], s
   override def highlights: List[Point] = highlights
 }
 
-case class TBDeletedShape(ogShape: Shape[_]) extends StaticShape {
-  val shape: Shape[_] = ogShape.patchStyles(shape.styles.copy(opacity=0.3))
-  val id: String = shape.id
-  val user: String = shape.user
-  val styles: StylesConfig = shape.styles
-  
-  override def applyStyles(gfx: CanvasRenderingContext2D): Unit = {}
-
-  override def highlights: List[Point] = shape.highlights
-
-  override def overlap(r: Rectangle): Boolean = shape.overlap(r)
-
-  override def draw(canvas: HTMLCanvasElement): Unit = {
-    shape.draw(canvas)
-  }
-}
 
   implicit val pointDecoder: Decoder[Point] = deriveDecoder
   implicit val pointEncoder: Encoder[Point] = deriveEncoder
