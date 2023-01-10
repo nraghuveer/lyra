@@ -4,18 +4,15 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
 
-import org.scalajs.dom
+import org.scalajs.dom._
 import scala.scalajs.js
-
 import java.util.Optional
-import org.scalajs.dom.HTMLCanvasElement
-import org.scalajs.dom.CanvasRenderingContext2D
-import scala.compiletime.ops.boolean
 
 def isOnLine(lineStart: Point, lineEnd: Point, target: Point): Boolean = {
    lineStart.x <= target.x && target.x <= lineEnd.x &&
     lineStart.y <= target.y && target.y <= lineEnd.y
 }
+
 
 case class Point(x: Double, y: Double) {
   def move(d: Delta): Point = Point(x + d.dx, y + d.dy)
@@ -43,7 +40,7 @@ case class Rectangle(x: Double, y: Double, w: Double, h: Double) {
 }
 
 object Rectangle {
-  def draw(gfx: dom.CanvasRenderingContext2D, rect: Rectangle): Unit = {
+  def draw(gfx: CanvasRenderingContext2D, rect: Rectangle): Unit = {
     gfx.moveTo(rect.x, rect.y)
     gfx.lineTo(rect.x + rect.w, rect.y)
     gfx.lineTo(rect.x + rect.w, rect.y + rect.h)
@@ -65,10 +62,10 @@ trait StaticShape:
   val styles: StylesConfig
   val id: String
   val user: String
-  def draw(canvas: dom.HTMLCanvasElement): Unit
-  def applyStyles(gfx: dom.CanvasRenderingContext2D): Unit
-  def getGFX(canvas: dom.HTMLCanvasElement): dom.CanvasRenderingContext2D = {
-    val gfx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  def draw(canvas: HTMLCanvasElement): Unit
+  def applyStyles(gfx: CanvasRenderingContext2D): Unit
+  def getGFX(canvas: HTMLCanvasElement): CanvasRenderingContext2D = {
+    val gfx = canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
     applyStyles(gfx)
     gfx
   }
@@ -92,7 +89,7 @@ case class StrokeShape(
     contents: List[Point],
     styles: StylesConfig
 ) extends ModifiableShape[StrokeShape] {
-
+  
   override def patchStyles(newStyles: StylesConfig): StrokeShape =
     StrokeShape(id, user, contents, newStyles)
     
@@ -117,7 +114,7 @@ case class StrokeShape(
 
   override def contains(p: Point): Boolean = contents.contains(p)
 
-  def draw(canvas: dom.HTMLCanvasElement): Unit = {
+  def draw(canvas: HTMLCanvasElement): Unit = {
     val gfx = getGFX(canvas)
     gfx.beginPath()
     for (p <- contents) {

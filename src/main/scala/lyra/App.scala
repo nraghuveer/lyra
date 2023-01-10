@@ -45,7 +45,7 @@ class App(canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
     attachMouseEvtHandlers(mode)
   }
   private def switchToDeleteMode(): Unit = {
-    mode = new DeleteAppMode(this)
+    mode = new DeleteAppMode(this, this.dataSetter)
     attachMouseEvtHandlers(mode)
   }
   private def undoRedoBindings(): Unit = {
