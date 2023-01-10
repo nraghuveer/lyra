@@ -141,14 +141,18 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode[_ <: Sha
 
   }
 
-  override def editees: List[StaticShape] = {
+  private def selectedShapes: List[Shape[_]] = {
     dragDelta match {
       case Some(delta) =>
         selectionMode.selectedShapes
           .map(shape => shape.move(delta))
-//          .map(shape => shape.patchStyles(shape.styles.copy(opacity=opacity)))
-      case None => List()  
+      //          .map(shape => shape.patchStyles(shape.styles.copy(opacity=opacity)))
+      case None => List()
     }
+  }
+
+  override def editees: List[StaticShape] = {
+    selectedShapes.map(s => s.patchStyles(s.styles.copy(opacity=opacity)))
   }
 }
 
