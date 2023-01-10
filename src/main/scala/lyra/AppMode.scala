@@ -4,21 +4,21 @@ import org.scalajs.dom.MouseEvent
 import scala.runtime.Static
 import scala.scalajs.js
 
-trait AppMode[T <: StaticShape[T]]:
+trait AppMode:
   def onMouseDown(e: dom.MouseEvent): Unit
   def onMouseUp(e: dom.MouseEvent): Unit
   def onMouseMove(e: dom.MouseEvent): Unit
-  def editees: List[StaticShape[T]]
+  def editees: List[StaticShape]
   def clearState(): Unit
   def getUniqueId: String = java.util.UUID.randomUUID().toString
 
-trait SelectionMode[T <: Shape[T], S <: T , H <: T] extends AppMode[T]:
+trait SelectionMode[S <: Shape[S], H <: Shape[H]] extends AppMode:
   def isInSelection(point: Option[Point]): Boolean
-  def selectedShapes: List[S]
-  def highlightShapes: List[H]
+  def selectedShapes: List[Shape[S]]
+  def highlightShapes: List[Shape[H]]
 
 // Stoke and Selection
-class RectangleSelectionMode(app: App) extends SelectionMode[Shape[_], SelectionRectShape, EndpointsHighlight] {
+class RectangleSelectionMode(app: App) extends SelectionMode[SelectionRectShape, EndpointsHighlight] {
   private var selectionRect: Option[Rectangle] = None
   private var selectionRectStart: Option[Point] = None
   private val dragMode = new RectangleSelectionDragMode(app, this)
@@ -59,11 +59,10 @@ class RectangleSelectionMode(app: App) extends SelectionMode[Shape[_], Selection
     // selection Rectangle ++ shapes bounded in this rectangle
     val rect = selectionRect match {
       case Some(rect) =>
-        List(SelectionRectShape(getUniqueId, app.user, rect, app.styles.copy(lineWidth = 2)).asInstanceOf[T])
+        List(SelectionRectShape(getUniqueId, app.user, rect, app.styles.copy(lineWidth = 2)))
       case None => List()
     }
-//    rect ++ dragMode.editees ++ highlightShapes
-    rect
+    rect ++ dragMode.editees ++ highlightShapes
 
   def onMouseDown(e: MouseEvent): Unit = {
     val p = app.clickToPoint(e)
@@ -101,8 +100,8 @@ class RectangleSelectionMode(app: App) extends SelectionMode[Shape[_], Selection
 }
 
 // T is the type of the shapes that the editees return
-class RectangleSelectionDragMode(app: App, selectionMode: RectangleSelectionMode)
-    extends AppMode[Shape[_]] {
+class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode[_ <: Shape[_], _ <: Shape[_]])
+    extends AppMode {
   private val opacity: Double = 0.3
   private var start: Option[Point] = None
   private var dragDelta: Option[Delta] = None
@@ -155,13 +154,13 @@ class RectangleSelectionDragMode(app: App, selectionMode: RectangleSelectionMode
 }
 
 // Initial mode for any shape
-abstract class CreationMode[T <: ModifiableShape[T]](app: App) extends AppMode[T] {
-  def newShape(): ModifiableShape[T]
+abstract class CreationMode(app: App) extends AppMode {
+  def newShape(): ModifiableShape[_]
 
-  private var editee: Option[ModifiableShape[T]] = None
+  private var editee: Option[ModifiableShape[_]] = None
 
-  override def editees: List[StaticShape[T]] = editee match {
-    case Some(shape) => List(shape.asInstanceOf[StaticShape[T]])
+  override def editees: List[StaticShape] = editee match {
+    case Some(shape) => List(shape)
     case None        => List()
   }
 
@@ -186,7 +185,7 @@ abstract class CreationMode[T <: ModifiableShape[T]](app: App) extends AppMode[T
   }
 }
 
-class StrokeCreateMode(app: App) extends CreationMode[StrokeShape](app) {
+class StrokeCreateMode(app: App) extends CreationMode(app) {
   override def clearState(): Unit = {}
 
   override def newShape(): StrokeShape = {

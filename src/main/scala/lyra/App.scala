@@ -30,8 +30,8 @@ class App(canvas: dom.HTMLCanvasElement) {
 
   // selection points are always queried on demand....
   // this will restrict us when using chained method on 'data'
-  private var data: List[_ <: StaticShape[_]] = List() // for now we just have stroke shape...
-  private var mode: AppMode[_ <: ModifiableShape[_]] = new StrokeCreateMode(this)
+  private var data: List[_ <: Shape[_]] = List() // for now we just have stroke shape...
+  private var mode: AppMode = new StrokeCreateMode(this)
   val commandController = new UndoRedoCommandController()
 
   switchToEditMode()
@@ -153,7 +153,7 @@ class App(canvas: dom.HTMLCanvasElement) {
     }
   }
 
-  private def dataSetter(changeFn: List[Shape] => List[Shape]): Unit = {
+  private def dataSetter(changeFn: List[Shape[_]] => List[Shape[_]]): Unit = {
     data = changeFn(data)
   }
 
@@ -164,7 +164,7 @@ class App(canvas: dom.HTMLCanvasElement) {
     Point(x, y)
   }
 
-  def shapes: List[Shape] = data
+  def shapes: List[Shape[_]] = data
 }
 
 implicit val stylesConfigDecoder: Decoder[StylesConfig] = deriveDecoder

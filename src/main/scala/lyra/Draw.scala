@@ -61,11 +61,10 @@ object Delta {
 }
 
 
-trait StaticShape[+T <: StaticShape[T]]:
+trait StaticShape:
   val styles: StylesConfig
   val id: String
   val user: String
-  def patchStyles(newStyles: StylesConfig): StaticShape[T]
   def draw(canvas: dom.HTMLCanvasElement): Unit
   def applyStyles(gfx: dom.CanvasRenderingContext2D): Unit
   def getGFX(canvas: dom.HTMLCanvasElement): dom.CanvasRenderingContext2D = {
@@ -76,13 +75,14 @@ trait StaticShape[+T <: StaticShape[T]]:
   def highlights: List[Point]
   def overlap(r: Rectangle): Boolean
 
-sealed trait Shape[+T <: Shape[T]] extends StaticShape[T]:
+sealed trait Shape[+T <: Shape[T]] extends StaticShape:
+  def patchStyles(newStyles: StylesConfig): Shape[T]
   def move(d: Delta): Shape[T]
-  
-  
+
+
 
 sealed trait ModifiableShape[+T <: ModifiableShape[T]] extends Shape[T] {
-  def modify(p: Point): T
+  def modify(p: Point): ModifiableShape[_]
 }
 
 case class StrokeShape(
