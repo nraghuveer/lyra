@@ -18,7 +18,7 @@ case class StylesConfig(
     opacity: Double
 )
 
-class App(canvas: dom.HTMLCanvasElement) {
+class App(canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
   var styles: StylesConfig = StylesConfig(
     color = "white",
     lineWidth = 4.0,
@@ -30,7 +30,7 @@ class App(canvas: dom.HTMLCanvasElement) {
 
   // selection points are always queried on demand....
   // this will restrict us when using chained method on 'data'
-  private var data: List[_ <: Shape[_]] = List() // for now we just have stroke shape...
+  private var data: List[_ <: Shape[_]] = initialData // for now we just have stroke shape...
   private var mode: AppMode = new StrokeCreateMode(this)
   val commandController = new UndoRedoCommandController()
 

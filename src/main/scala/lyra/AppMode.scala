@@ -1,7 +1,6 @@
 package lyra
 import org.scalajs.dom
 import org.scalajs.dom.MouseEvent
-import scala.runtime.Static
 import scala.scalajs.js
 
 trait AppMode:
@@ -12,13 +11,13 @@ trait AppMode:
   def clearState(): Unit
   def getUniqueId: String = java.util.UUID.randomUUID().toString
 
-trait SelectionMode[S <: Shape[S], H <: Shape[H]] extends AppMode:
+trait SelectionMode[H <: Shape[H]] extends AppMode:
   def isInSelection(point: Option[Point]): Boolean
-  def selectedShapes: List[Shape[S]]
+  def selectedShapes: List[_ <: Shape[_]]
   def highlightShapes: List[Shape[H]]
 
 // Stoke and Selection
-class RectangleSelectionMode(app: App) extends SelectionMode[SelectionRectShape, EndpointsHighlight] {
+class RectangleSelectionMode(app: App) extends SelectionMode[EndpointsHighlight] {
   private var selectionRect: Option[Rectangle] = None
   private var selectionRectStart: Option[Point] = None
   private val dragMode = new RectangleSelectionDragMode(app, this)
@@ -38,7 +37,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode[SelectionRectShape,
     }
   }
 
-  override def selectedShapes: List[Shape[_]] = {
+  override def selectedShapes: List[_ <: Shape[_]] = {
     // this should have different styles
     // the idea is to highlight the start and endpoints....
     // if bounding rectangle
@@ -55,7 +54,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode[SelectionRectShape,
         .map(shape => EndpointsHighlight(getUniqueId, shape.user, shape.highlights, app.styles))
   }
 
-  override def editees: List[Shape[_]] =
+  override def editees: List[StaticShape] =
     // selection Rectangle ++ shapes bounded in this rectangle
     val rect = selectionRect match {
       case Some(rect) =>
@@ -100,7 +99,7 @@ class RectangleSelectionMode(app: App) extends SelectionMode[SelectionRectShape,
 }
 
 // T is the type of the shapes that the editees return
-class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode[_ <: Shape[_], _ <: Shape[_]])
+class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode[_ <: Shape[_]])
     extends AppMode {
   private val opacity: Double = 0.3
   private var start: Option[Point] = None
@@ -142,12 +141,12 @@ class RectangleSelectionDragMode(app: App, selectionMode: SelectionMode[_ <: Sha
 
   }
 
-  override def editees: List[_ <: Shape[_]] = {
+  override def editees: List[StaticShape] = {
     dragDelta match {
       case Some(delta) =>
         selectionMode.selectedShapes
           .map(shape => shape.move(delta))
-          .map(shape => shape.patchStyles(shape.styles.copy(opacity=opacity)))
+//          .map(shape => shape.patchStyles(shape.styles.copy(opacity=opacity)))
       case None => List()  
     }
   }
