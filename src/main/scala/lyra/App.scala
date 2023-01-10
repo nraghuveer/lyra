@@ -18,7 +18,7 @@ case class StylesConfig(
     opacity: Double
 )
 
-class App(canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
+class App(val canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
   var styles: StylesConfig = StylesConfig(
     color = "white",
     lineWidth = 4.0,
