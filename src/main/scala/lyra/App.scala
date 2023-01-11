@@ -32,6 +32,8 @@ class App(val canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
   // this will restrict us when using chained method on 'data'
   private var data: List[_ <: Shape[_]] = initialData // for now we just have stroke shape...
   private var mode: AppMode = new StrokeCreateMode(this)
+  private var differ = DiffSync(data)
+
   val commandController = new UndoRedoCommandController()
 
   switchToEditMode()
@@ -64,6 +66,12 @@ class App(val canvas: dom.HTMLCanvasElement, initialData: List[_ <: Shape[_]]) {
       .onclick = _ => {
       commandController.redo()
       paint()
+    }
+
+    dom.document.querySelector("#btnSync").asInstanceOf[HTMLButtonElement]
+      .onclick = _ => {
+        println(differ.diff(data))
+        differ = DiffSync(data)
     }
 
   }
